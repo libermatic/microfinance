@@ -14,7 +14,7 @@ def _create_account(doc, company_name):
 			'parent_account': "{} - {}".format(doc['parent_account'], abbr),
 			'is_group': 0,
 			'company': company_name,
-			"account_type": doc['account_type'],
+			'account_type': doc.get('account_type'),
 		}).insert(ignore_if_duplicate=True)
 
 def after_wizard_complete(args=None):
@@ -24,12 +24,11 @@ def after_wizard_complete(args=None):
 	company_name = frappe.defaults.get_global_default('company')
 
 	_create_account({
-			'account_name': "Mircofinance Loans",
+			'account_name': "Microfinance Loans",
 			'parent_account': "Loans and Advances (Assets)",
 		}, company_name)
 
 	_create_account({
 			'account_name': "Interests on Loans",
 			'parent_account': "Indirect Income",
-			"account_type": None,
 		}, company_name)
