@@ -5,28 +5,43 @@ from frappe import _
 def get_data():
 	return [
 		{
-			"label": _("Documents"),
+			"label": _("Document"),
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Loan",
+					"description": _("Customer loans"),
+				},
+			]
+			},
+		{
+			"label": _("Transaction"),
+			"items": [
+                {
+	                "type": "doctype",
+	                "name": "Disbursement",
+	                "description": _("Loan payout to customers"),
+                },
+                {
+	                "type": "doctype",
+	                "name": "Recovery",
+	                "description": _("Loan payments received from customers"),
+                },
+			]
+		},
+		{
+			"label": _("Setup"),
 			"items": [
 				{
 					"type": "doctype",
 					"name": "Customer",
 					"description": _("Customers"),
 				},
-                {
-                "type": "doctype",
-                "name": "Loan",
-                "description": _("Customer loans"),
-                },
 				{
 					"type": "doctype",
 					"name": "Loan Plan",
 					"description": _("Types of loans"),
 				},
-			]
-		},
-		{
-			"label": _("Setup"),
-			"items": [
 				{
 					"type": "doctype",
 					"name": "Loan Settings",
