@@ -17,6 +17,20 @@ def _create_account(doc, company_name):
 			'account_type': doc.get('account_type'),
 		}).insert(ignore_if_duplicate=True)
 
+def _set_fixtures():
+	options = frappe.get_meta('Journal Entry Account').get_field('reference_type').options
+	if not '\nLoan' in :
+		doc = frappe.new_doc('Property Setter')
+		value = options + '\nLoan'
+		doc.update({
+				'doc_type': 'Journal Entry Account',
+				'field_name' :'reference_type',
+				'property': 'options',
+				'property_type': 'Text',
+				'value': value
+			})
+		doc.insert(ignore_permissions=True)
+
 def after_wizard_complete(args=None):
 	if frappe.defaults.get_global_default('country') != "India":
 		return
@@ -32,3 +46,5 @@ def after_wizard_complete(args=None):
 			'account_name': "Interests on Loans",
 			'parent_account': "Indirect Income",
 		}, company_name)
+
+	_set_fixtures()
