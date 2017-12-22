@@ -17,16 +17,27 @@ def get_data():
 		{
 			"label": _("Transaction"),
 			"items": [
-                {
-	                "type": "doctype",
-	                "name": "Disbursement",
-	                "description": _("Loan payout to customers"),
-                },
-                {
-	                "type": "doctype",
-	                "name": "Recovery",
-	                "description": _("Loan payments received from customers"),
-                },
+				{
+					"type": "doctype",
+					"name": "Disbursement",
+					"description": _("Loan payout to customers"),
+				},
+				{
+					"type": "doctype",
+					"name": "Recovery",
+					"description": _("Loan payments received from customers"),
+				},
+			]
+		},
+		{
+			"label": _("Reports"),
+			"items": [
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Loan Summary",
+					"doctype": "Loan Summary",
+				},
 			]
 		},
 		{
