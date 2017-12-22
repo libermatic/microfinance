@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.model.document import Document
 from erpnext.controllers.accounts_controller import AccountsController
 
 from microfinance.microfinance_loan.doctype.loan.loan import get_undisbersed_principal
