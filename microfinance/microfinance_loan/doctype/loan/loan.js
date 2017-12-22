@@ -31,33 +31,14 @@ frappe.ui.form.on('Loan', {
       frm.set_df_property('disbursement_status', 'hidden', true);
       frm.set_df_property('recovery_status', 'hidden', true);
       const { message } = await frappe.db.get_value('Loan Settings', null, [
-        'mode_of_payment',
         'loan_account',
         'interest_income_account',
       ]);
       if (message) {
-        const {
-          mode_of_payment,
-          loan_account,
-          interest_income_account,
-        } = message;
-        frm.set_value('mode_of_payment', mode_of_payment);
+        const { loan_account, interest_income_account } = message;
         frm.set_value('loan_account', loan_account);
         frm.set_value('interest_income_account', interest_income_account);
       }
-    }
-  },
-  mode_of_payment: async function(frm) {
-    const { message } = await frappe.call({
-      method:
-        'erpnext.accounts.doctype.sales_invoice.sales_invoice.get_bank_cash_account',
-      args: {
-        mode_of_payment: frm.doc.mode_of_payment,
-        company: frm.doc.company,
-      },
-    });
-    if (message) {
-      frm.set_value('payment_account', message.account);
     }
   },
 });
