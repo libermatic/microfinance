@@ -24,6 +24,7 @@ def _set_fixtures():
 		value = options + '\nLoan'
 		doc.update({
 				'doc_type': 'Journal Entry Account',
+				'doctype_or_field': 'DocField',
 				'field_name' :'reference_type',
 				'property': 'options',
 				'property_type': 'Text',
