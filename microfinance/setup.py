@@ -19,7 +19,7 @@ def _create_account(doc, company_name):
 
 def _set_fixtures():
 	options = frappe.get_meta('Journal Entry Account').get_field('reference_type').options
-	if not '\nLoan' in :
+	if not '\nLoan' in options:
 		doc = frappe.new_doc('Property Setter')
 		value = options + '\nLoan'
 		doc.update({
