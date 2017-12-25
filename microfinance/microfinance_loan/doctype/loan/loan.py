@@ -9,7 +9,12 @@ from frappe.model.document import Document
 import math
 
 class Loan(Document):
-	pass
+	def add_principal(self, amount):
+		amount = flt(amount)
+		if amount < 0:
+			frappe.throw('Cannot decrease principal')
+		self.loan_principal += amount
+		self.save()
 
 @frappe.whitelist()
 def get_undisbersed_principal(loan):
