@@ -11,7 +11,12 @@ from microfinance.microfinance_loan.doctype.loan.loan import get_outstanding_pri
 
 class Recovery(AccountsController):
 	def validate(self):
-		pass
+		outstanding_principal = get_outstanding_principal(self.loan)
+		if self.amount > outstanding_principal:
+			frappe.throw(_(
+					"Cannot recover more that the outstanding principal: {}"
+						.format(outstanding_principal)
+				))
 
 	def on_submit(self):
 		self.update_loan_status()
