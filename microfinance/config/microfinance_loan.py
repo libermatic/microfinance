@@ -9,6 +9,11 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
+					"name": "Loan Application",
+					"description": _("Loans applied for"),
+				},
+				{
+					"type": "doctype",
 					"name": "Loan",
 					"description": _("Customer loans"),
 				},
