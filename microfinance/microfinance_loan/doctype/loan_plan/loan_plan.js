@@ -6,7 +6,9 @@ frappe.ui.form.on('Loan Plan', {
     if (frm.doc['recovery_frequency'] === 'Monthly') {
       const { billing_day, due_day } = frm.doc;
       if (!microfinance.utils.check_billing_vs_due_date(billing_day, due_day)) {
-        frappe.throw(__('Due day must be after Billing day'));
+        frappe.throw(
+          __('Due Day must after Billing Date and should be within 30 days')
+        );
       }
     }
   },
