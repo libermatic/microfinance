@@ -42,4 +42,38 @@ frappe.ui.form.on('Loan', {
       }
     }
   },
+  validate: function(frm) {
+    if (frm.doc['recovery_frequency'] === 'Monthly') {
+      const { billing_date, due_date } = frm.doc;
+      if (
+        !microfinance.utils.check_billing_vs_due_date(billing_date, due_date)
+      ) {
+        frappe.throw(
+          __('Due Day must after Billing Date and should be within 30 days')
+        );
+      }
+    }
+  },
+  loan_plan: async function(frm) {
+    const { message = {} } = await frappe.db.get_value(
+      'Loan Plan',
+      frm.doc['loan_plan'],
+      ['recovery_frequency', 'day', 'billing_day', 'due_day']
+    );
+    const { recovery_frequency, day, billing_day, due_day } = message;
+    frm.set_value('day', null);
+    frm.set_value('billing_date', null);
+    frm.set_value('due_date', null);
+    if (recovery_frequency === 'Weekly') {
+      frm.set_value('day', day);
+    } else if (recovery_frequency === 'Monthly') {
+      const { posting_date } = frm.doc;
+      const bd = moment(billing_day).date();
+      const dd_days_after_bd = moment(due_day).diff(billing_day, 'days');
+      let billing_date = moment(posting_date).date(bd);
+      let due_date = moment(billing_date).add(dd_days_after_bd, 'days');
+      frm.set_value('billing_date', billing_date);
+      frm.set_value('due_date', due_date);
+    }
+  },
 });

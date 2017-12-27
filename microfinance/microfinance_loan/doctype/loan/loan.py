@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils import flt
-# from frappe.utils.dateutils import parse_date
 from frappe.utils.data import getdate, today, add_months, date_diff, get_last_day
 from frappe.model.document import Document
 import math
