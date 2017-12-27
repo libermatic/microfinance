@@ -14,7 +14,7 @@ frappe.ui.form.on('Recovery', {
     }
   },
   loan: async function(frm) {
-    const [{ message: interest_amount }, { message }] = await Promise.all([
+    const [{ message: interest_amount = 0 }, { message }] = await Promise.all([
       frappe.call({
         method:
           'microfinance.microfinance_loan.doctype.loan.loan.get_interest_amount',
