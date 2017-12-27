@@ -29,6 +29,7 @@ class Recovery(AccountsController):
 	def make_jv_entry(self):
 		self.check_permission('write')
 		je = frappe.new_doc('Journal Entry')
+		je.title = self.customer
 		je.voucher_type = 'Cash Entry'
 		je.user_remark = _('Against Loan: {0}').format(self.loan)
 		je.company = self.company
