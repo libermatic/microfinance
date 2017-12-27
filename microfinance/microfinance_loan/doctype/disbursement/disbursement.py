@@ -15,7 +15,7 @@ class Disbursement(AccountsController):
 			frappe.throw(_("Disbursed amount cannot be greater than sanctioned amount"))
 	def on_submit(self):
 		self.journal_entry = self.make_jv_entry()
-		self.save()
+		# save not reqd for above assigment because the later method does so
 		self.update_loan_status()
 
 	def on_cancel(self):

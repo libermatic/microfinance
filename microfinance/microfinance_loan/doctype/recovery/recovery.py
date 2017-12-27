@@ -20,6 +20,7 @@ class Recovery(AccountsController):
 
 	def on_submit(self):
 		self.journal_entry = self.make_jv_entry()
+		# save not reqd for above assigment because the later method does so
 		self.update_loan_status()
 
 	def on_cancel(self):
