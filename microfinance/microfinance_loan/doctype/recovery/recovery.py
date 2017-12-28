@@ -41,18 +41,31 @@ class Recovery(AccountsController):
 				'reference_type': 'Loan',
 				'reference_name': self.loan,
 			})
-		account_amt_list.append({
+		principal = self.amount
+		if self.interest > 0:
+			account_amt_list.append({
 				'account': self.interest_income_account,
 				'credit_in_account_currency': self.interest,
 				'reference_type': 'Loan',
 				'reference_name': self.loan,
 			})
-		account_amt_list.append({
-				'account': self.loan_account,
-				'credit_in_account_currency': self.amount - self.interest,
-				'reference_type': 'Loan',
-				'reference_name': self.loan,
-			})
+			principal = principal - self.interest
+		if principal:
+			account_amt_list.append({
+					'account': self.loan_account,
+					'credit_in_account_currency': self.amount - self.interest,
+					'reference_type': 'Loan',
+					'reference_name': self.loan,
+				})
+		if self.loan_charges:
+			for row in self.loan_charges:
+				account_amt_list[0]['debit_in_account_currency'] += row.amount
+				account_amt_list.append({
+						'account': row.account,
+						'credit_in_account_currency': row.amount,
+						'reference_type': 'Loan',
+						'reference_name': self.loan,
+					})
 		je.set("accounts", account_amt_list)
 		je.insert()
 		je.submit()

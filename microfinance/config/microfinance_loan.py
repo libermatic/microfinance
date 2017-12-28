@@ -60,6 +60,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "Loan Charge",
+					"description": _("Types of charges that could be applicable"),
+				},
+				{
+					"type": "doctype",
 					"name": "Loan Settings",
 					"description": _("Global loan configuration"),
 				},
