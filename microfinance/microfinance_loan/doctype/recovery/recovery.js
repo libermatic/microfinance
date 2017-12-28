@@ -1,7 +1,21 @@
 // Copyright (c) 2017, Libermatic and contributors
 // For license information, please see license.txt
 
+function calculate_total(frm) {
+  const { amount = 0, loan_charges = [] } = frm.doc;
+  frm.set_value(
+    'total',
+    amount + loan_charges.reduce((a, { charge_amount: x }) => a + x, 0)
+  );
+}
+
 frappe.ui.form.on('Recovery', {
+  refresh: function() {
+    frappe.ui.form.on('Recovery Charges', {
+      charge_amount: calculate_total,
+      loan_charges_remove: calculate_total,
+    });
+  },
   onload: async function(frm) {
     if (frm.doc.__islocal) {
       const { message } = await frappe.db.get_value('Loan Settings', null, [
@@ -28,11 +42,10 @@ frappe.ui.form.on('Recovery', {
         'stipulated_recovery_amount'
       ),
     ]);
+    const { stipulated_recovery_amount = 0 } = message || {};
     frm.set_value('interest', interest_amount);
-    frm.set_value(
-      'amount',
-      interest_amount + message['stipulated_recovery_amount']
-    );
+    frm.set_value('principal', stipulated_recovery_amount);
+    frm.set_value('amount', interest_amount + stipulated_recovery_amount);
   },
   mode_of_payment: async function(frm) {
     const { message } = await frappe.call({
@@ -47,4 +60,6 @@ frappe.ui.form.on('Recovery', {
       frm.set_value('payment_account', message.account);
     }
   },
+  amount: calculate_total,
+  onsubmit: calculate_total,
 });

@@ -59,10 +59,10 @@ class Recovery(AccountsController):
 				})
 		if self.loan_charges:
 			for row in self.loan_charges:
-				account_amt_list[0]['debit_in_account_currency'] += row.amount
+				account_amt_list[0]['debit_in_account_currency'] += row.charge_amount
 				account_amt_list.append({
-						'account': row.account,
-						'credit_in_account_currency': row.amount,
+						'account': row.charge_account,
+						'credit_in_account_currency': row.charge_amount,
 						'reference_type': 'Loan',
 						'reference_name': self.loan,
 					})
