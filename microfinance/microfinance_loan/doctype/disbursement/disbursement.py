@@ -26,7 +26,7 @@ class Disbursement(AccountsController):
 		je = frappe.new_doc('Journal Entry')
 		je.title = self.customer
 		je.voucher_type = 'Cash Entry'
-		je.user_remark = _('Against Loan: {0}').format(self.loan)
+		je.user_remark = _('Against Loan: {0}. Disbursement Doc: {1}').format(self.loan, self.name)
 		je.company = self.company
 		je.posting_date = self.posting_date
 		account_amt_list = []
