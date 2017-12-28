@@ -84,4 +84,7 @@ def get_interest_amount(loan=None, posting_date=today()):
 	rate, slab = frappe.get_value('Loan', loan, ['rate_of_interest', 'calculation_slab'])
 	if slab:
 		principal = math.ceil(principal / slab) * slab
-	return principal * rate / 100.0 - paid_amount
+	interest = principal * rate / 100.0 - paid_amount
+	if interest < 0:
+		return 0
+	return interest
