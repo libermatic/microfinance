@@ -43,6 +43,12 @@ def get_data():
 					"name": "Loan Summary",
 					"doctype": "Loan Summary",
 				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Monthly Loan Interests",
+					"doctype": "Monthly Loan Interests",
+				},
 			]
 		},
 		{
