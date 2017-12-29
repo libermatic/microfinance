@@ -47,7 +47,7 @@ def get_outstanding_principal(loan):
 			SELECT sum(debit) - sum(credit)
 			FROM `tabGL Entry`
 			WHERE {}
-		""".format(" AND ".join(cond)))[0][0]
+		""".format(" AND ".join(cond)))[0][0] or 0
 	return principal
 
 def get_interval(day_of_month, date_obj):
@@ -70,7 +70,7 @@ def get_interest_amount(loan=None, posting_date=today()):
 	if not loan:
 		return None
 	posting_date = getdate(posting_date)
-	billing_date = frappe.get_value('Loan', loan, 'billing_date')
+	billing_date = frappe.get_value('Loan', loan, 'billing_date') or posting_date.replace(day=1)
 	start_date, end_date = get_interval(day_of_month=billing_date.day, date_obj=posting_date)
 	paid_amount = frappe.db.sql("""
 			SELECT sum(gl.credit - gl.debit)
