@@ -60,6 +60,10 @@ frappe.ui.form.on('Recovery', {
       frm.set_value('payment_account', message.account);
     }
   },
-  amount: calculate_total,
+  amount: function(frm) {
+    const { amount, interest } = frm.doc;
+    frm.set_value('principal', amount - interest);
+    calculate_total(frm);
+  },
   onsubmit: calculate_total,
 });
