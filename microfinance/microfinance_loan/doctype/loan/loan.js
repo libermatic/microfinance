@@ -54,6 +54,14 @@ frappe.ui.form.on('Loan', {
       }
     }
   },
+  customer: async function(frm) {
+    const { message: customer_address } = await frappe.call({
+      method:
+        'microfinance.microfinance_loan.doctype.loan.loan.get_customer_address',
+      args: { customer: frm.doc['customer'] },
+    });
+    frm.set_value('customer_address', customer_address);
+  },
   loan_plan: async function(frm) {
     const { message = {} } = await frappe.db.get_value(
       'Loan Plan',

@@ -7,6 +7,7 @@ import frappe
 from frappe.utils import flt
 from frappe.utils.data import getdate, today, add_months, date_diff, get_last_day
 from frappe.model.document import Document
+from frappe.contacts.doctype.address.address import get_default_address
 import math
 
 class Loan(Document):
@@ -88,3 +89,25 @@ def get_interest_amount(loan=None, posting_date=today()):
 	if interest < 0:
 		return 0
 	return interest
+
+@frappe.whitelist()
+def get_customer_address(customer=None):
+	if not customer:
+		return None
+	address = frappe.get_value(
+			'Address',
+			get_default_address('Customer', customer),
+			['address_line1', 'address_line2', 'city', 'county', 'state', 'pincode'],
+			as_dict=True
+		) or {}
+	state = ' - '.join(filter(lambda x: not not x, [
+			address.get('state'),
+			address.get('pincode'),
+		]))
+	return ', '.join(filter(lambda x: not not x, [
+			address.get('address_line1'),
+			address.get('address_line2'),
+			address.get('city'),
+			address.get('county'),
+			state,
+		]))
