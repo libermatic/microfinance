@@ -9,7 +9,7 @@ from frappe.exceptions import DuplicateEntryError
 def _create_account(doc, company_name):
 	abbr = frappe.get_value('Company', company_name, 'abbr')
 	return frappe.get_doc({
-			'doctype': "Account",
+			'doctype': 'Account',
 			'account_name': doc['account_name'],
 			'parent_account': "{} - {}".format(doc['parent_account'], abbr),
 			'is_group': 0,
@@ -19,6 +19,7 @@ def _create_account(doc, company_name):
 
 def _set_fixtures():
 	options = frappe.get_meta('Journal Entry Account').get_field('reference_type').options
+    # for property setter
 	if not '\nLoan' in options:
 		doc = frappe.new_doc('Property Setter')
 		value = options + '\nLoan'
@@ -31,6 +32,16 @@ def _set_fixtures():
 				'value': value
 			})
 		doc.insert(ignore_permissions=True)
+
+    # for custom field
+	frappe.get_doc({
+			'doctype': 'Custom Field',
+			'dt': 'Journal Entry Account',
+			'label': 'Transaction Details',
+			'fieldname': 'transaction_details',
+			'insert_after': 'against_account',
+			'fieldtype': 'Text',
+		}).insert(ignore_if_duplicate=True)
 
 def after_wizard_complete(args=None):
 	if frappe.defaults.get_global_default('country') != "India":
@@ -48,4 +59,5 @@ def after_wizard_complete(args=None):
 			'parent_account': "Indirect Income",
 		}, company_name)
 
+def after_install(args=None):
 	_set_fixtures()

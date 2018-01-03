@@ -58,8 +58,7 @@ doctype_js = {
 # ------------
 
 # before_install = "microfinance.install.before_install"
-# after_install = "microfinance.install.after_install"
-
+after_install = "microfinance.setup.after_install"
 setup_wizard_complete = "microfinance.setup.after_wizard_complete"
 
 # Desk Notifications

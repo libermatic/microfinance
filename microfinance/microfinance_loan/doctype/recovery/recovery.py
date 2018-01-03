@@ -40,6 +40,7 @@ class Recovery(AccountsController):
 				'debit_in_account_currency': self.amount,
 				'reference_type': 'Loan',
 				'reference_name': self.loan,
+				'transaction_details': 'Repayment'
 			})
 		principal = self.amount
 		if self.interest > 0:
@@ -48,6 +49,7 @@ class Recovery(AccountsController):
 				'credit_in_account_currency': self.interest,
 				'reference_type': 'Loan',
 				'reference_name': self.loan,
+				'transaction_details': 'Interest on loan'
 			})
 			principal = principal - self.interest
 		if principal:
@@ -65,6 +67,7 @@ class Recovery(AccountsController):
 						'credit_in_account_currency': row.charge_amount,
 						'reference_type': 'Loan',
 						'reference_name': self.loan,
+						'transaction_details': row.charge
 					})
 		je.set("accounts", account_amt_list)
 		je.insert()

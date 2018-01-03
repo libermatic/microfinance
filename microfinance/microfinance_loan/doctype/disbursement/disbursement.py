@@ -41,6 +41,7 @@ class Disbursement(AccountsController):
 				'credit_in_account_currency': self.amount,
 				'reference_type': 'Loan',
 				'reference_name': self.loan,
+				'transaction_details': 'Disbursement'
 			})
 		je.set("accounts", account_amt_list)
 		je.insert()
