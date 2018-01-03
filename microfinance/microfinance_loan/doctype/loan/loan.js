@@ -31,15 +31,22 @@ frappe.ui.form.on('Loan', {
     if (frm.doc.__islocal) {
       frm.set_df_property('disbursement_status', 'hidden', true);
       frm.set_df_property('recovery_status', 'hidden', true);
-      const { message } = await frappe.db.get_value('Loan Settings', null, [
-        'loan_account',
-        'interest_income_account',
-      ]);
-      if (message) {
-        const { loan_account, interest_income_account } = message;
+      const { message: settings } = await frappe.db.get_value(
+        'Loan Settings',
+        null,
+        ['loan_account', 'interest_income_account']
+      );
+      if (settings) {
+        const { loan_account, interest_income_account } = settings;
         frm.set_value('loan_account', loan_account);
         frm.set_value('interest_income_account', interest_income_account);
       }
+      const { message: letter_head } = await frappe.db.get_value(
+        'Letter Head',
+        { is_default: 1 },
+        'name'
+      );
+      frm.set_value('letter_head', letter_head['name']);
     }
   },
   validate: function(frm) {
