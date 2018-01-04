@@ -11,7 +11,7 @@ function calculate_total(frm) {
 
 frappe.ui.form.on('Recovery', {
   refresh: function() {
-    frappe.ui.form.on('Recovery Charges', {
+    frappe.ui.form.on('Recovery Charge', {
       charge_amount: calculate_total,
       loan_charges_remove: calculate_total,
     });
