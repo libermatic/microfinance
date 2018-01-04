@@ -23,7 +23,7 @@ def reject(name):
 	loan_application.update_status('Rejected')
 
 @frappe.whitelist()
-def approve(name):
+def approve(name, loan_no=None):
 	loan_application = frappe.get_doc('Loan Application', name)
 	if loan_application.loan:
 		loan = frappe.get_doc('Loan', loan_application.loan)
@@ -36,6 +36,7 @@ def approve(name):
 					['interest_income_account', 'loan_account']
 				)
 			target.update({
+				'loan_no': loan_no,
 				'posting_date': date.today(),
 				'loan_principal': source.amount,
 				'loan_account': loan_account,

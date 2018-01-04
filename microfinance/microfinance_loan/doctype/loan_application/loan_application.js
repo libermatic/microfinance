@@ -37,15 +37,34 @@ frappe.ui.form.on('Loan Application', {
           });
           frm.reload_doc();
         });
-        frm
-          .add_custom_button(__('Approve'), async function() {
+        const current_loan = frm.doc['loan'];
+        const loan_dialog = new frappe.ui.Dialog({
+          title: current_loan ? 'Adding to Loan' : 'New Loan',
+          fields: [
+            {
+              fieldname: 'loan_no',
+              fieldtype: 'Data',
+              label: 'Loan Account No',
+              read_only: !!current_loan,
+              default: frm.doc['loan'],
+            },
+          ],
+        });
+        loan_dialog.set_primary_action(
+          __(current_loan ? 'Add' : 'Create'),
+          async function({ loan_no }) {
             const { message: loan } = await frappe.call({
               method:
                 'microfinance.microfinance_loan.doctype.loan_application.loan_application.approve',
-              args: { name: frm.doc['name'] },
+              args: { name: frm.doc['name'], loan_no },
             });
             frm.reload_doc();
             frappe.set_route('Form', 'Loan', loan);
+          }
+        );
+        frm
+          .add_custom_button(__('Approve'), function() {
+            loan_dialog.show();
           })
           .addClass('btn-primary');
       }
