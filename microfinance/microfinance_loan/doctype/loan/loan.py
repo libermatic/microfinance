@@ -36,13 +36,14 @@ def get_undisbersed_principal(loan):
 	return flt(full_principal) - flt(disbursed_principal)
 
 @frappe.whitelist()
-def get_outstanding_principal(loan):
+def get_outstanding_principal(loan, date=today()):
 	loan_account = frappe.get_value('Loan', loan, 'loan_account')
 	cond = [
 			"account = '{}'".format(loan_account),
 			"voucher_type = 'Journal Entry'",
 			"against_voucher_type = 'Loan'",
-			"against_voucher = '{}'".format(loan)
+			"against_voucher = '{}'".format(loan),
+			"posting_date <= '{}'".format(date),
 		]
 	principal = frappe.db.sql("""
 			SELECT sum(debit) - sum(credit)
@@ -81,7 +82,7 @@ def get_interest_amount(loan=None, posting_date=today()):
 			AND gl.posting_date BETWEEN '{start_date}' AND '{end_date}'
 			AND lt.name = '{loan}'
 		""".format(loan=loan, start_date=start_date, end_date=end_date))[0][0] or 0
-	principal = get_outstanding_principal(loan)
+	principal = get_outstanding_principal(loan, posting_date)
 	rate, slab = frappe.get_value('Loan', loan, ['rate_of_interest', 'calculation_slab'])
 	if slab:
 		principal = math.ceil(principal / slab) * slab
