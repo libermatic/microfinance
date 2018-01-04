@@ -92,6 +92,7 @@ class Recovery(AccountsController):
 		outstanding_principal = get_outstanding_principal(self.loan)
 		loan = frappe.get_doc('Loan', self.loan)
 		if disbursement_status == 'Fully Disbursed' and outstanding_principal == 0:
+			loan.clear_date = self.posting_date
 			loan.recovery_status = 'Repaid'
 		else:
 			if recovery_status == 'In Progress':
