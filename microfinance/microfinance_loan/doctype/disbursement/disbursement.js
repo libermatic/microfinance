@@ -31,7 +31,7 @@ frappe.ui.form.on('Disbursement', {
   loan: async function(frm) {
     const { message } = await frappe.call({
       method:
-        'microfinance.microfinance_loan.doctype.loan.loan.get_undisbersed_principal',
+        'microfinance.microfinance_loan.doctype.loan.loan.get_undisbursed_principal',
       args: {
         loan: frm.doc.loan,
       },

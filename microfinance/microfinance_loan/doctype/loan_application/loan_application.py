@@ -19,11 +19,13 @@ class LoanApplication(Document):
 
 @frappe.whitelist()
 def reject(name):
+	'''Method to reject a Loan Application'''
 	loan_application = frappe.get_doc('Loan Application', name)
 	loan_application.update_status('Rejected')
 
 @frappe.whitelist()
 def approve(name, loan_no=None):
+	'''Method to approve a Loan Application'''
 	loan_application = frappe.get_doc('Loan Application', name)
 	if loan_application.loan:
 		loan = frappe.get_doc('Loan', loan_application.loan)

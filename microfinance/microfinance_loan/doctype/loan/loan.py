@@ -15,6 +15,7 @@ class Loan(Document):
 		self.disbursement_status = 'Sanctioned'
 		self.recovery_status = 'Not Started'
 	def update_from_application(self, application):
+		'''Method used by Loan application to add to sanctioned amount'''
 		amount = flt(application.amount)
 		if amount < 0:
 			frappe.throw('Cannot decrease principal')
@@ -26,7 +27,8 @@ class Loan(Document):
 		self.save()
 
 @frappe.whitelist()
-def get_undisbersed_principal(loan):
+def get_undisbursed_principal(loan):
+	'''Gets undisbursed principal'''
 	full_principal = frappe.get_value('Loan', loan, 'loan_principal')
 	disbursed_principal = frappe.db.sql("""
 			SELECT SUM(amount)
@@ -37,6 +39,7 @@ def get_undisbersed_principal(loan):
 
 @frappe.whitelist()
 def get_outstanding_principal(loan, date=today()):
+	'''Get outstanding principal'''
 	loan_account = frappe.get_value('Loan', loan, 'loan_account')
 	cond = [
 			"account = '{}'".format(loan_account),
@@ -53,6 +56,7 @@ def get_outstanding_principal(loan, date=today()):
 	return principal
 
 def get_interval(day_of_month, date_obj):
+	'''Returns start and end date of the interval'''
 	try:
 		start_date = date_obj.replace(day=day_of_month)
 	except ValueError:
@@ -69,6 +73,7 @@ def get_interval(day_of_month, date_obj):
 
 @frappe.whitelist()
 def get_interest_amount(loan=None, posting_date=today()):
+	'''Get interest amount'''
 	if not loan:
 		return None
 	posting_date = getdate(posting_date)
@@ -93,6 +98,7 @@ def get_interest_amount(loan=None, posting_date=today()):
 
 @frappe.whitelist()
 def get_customer_address(customer=None):
+	'''Returns formatted address of Customer'''
 	if not customer:
 		return None
 	address = frappe.get_value(

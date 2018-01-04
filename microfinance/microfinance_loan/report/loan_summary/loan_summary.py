@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 
 from microfinance.microfinance_loan.doctype.loan.loan \
-	import get_undisbersed_principal, get_outstanding_principal
+	import get_undisbursed_principal, get_outstanding_principal
 
 def execute(filters=None):
 	columns = [
@@ -24,7 +24,7 @@ def execute(filters=None):
 		""")
 	data = []
 	for row in result:
-		undisbursed = get_undisbersed_principal(row[1]) or 0
+		undisbursed = get_undisbursed_principal(row[1]) or 0
 		outstanding = get_outstanding_principal(row[1]) or 0
 		data.append(row + (
 				row[3] - undisbursed,

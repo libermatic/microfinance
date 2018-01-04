@@ -7,11 +7,11 @@ import frappe
 from frappe import _
 from erpnext.controllers.accounts_controller import AccountsController
 
-from microfinance.microfinance_loan.doctype.loan.loan import get_undisbersed_principal
+from microfinance.microfinance_loan.doctype.loan.loan import get_undisbursed_principal
 
 class Disbursement(AccountsController):
 	def validate(self):
-		if self.amount > get_undisbersed_principal(self.loan):
+		if self.amount > get_undisbursed_principal(self.loan):
 			frappe.throw(_("Disbursed amount cannot be greater than sanctioned amount"))
 	def on_submit(self):
 		self.journal_entry = self.make_jv_entry()
@@ -58,15 +58,16 @@ class Disbursement(AccountsController):
 		return je.name
 
 	def update_loan_status(self):
+		'''Method to update disbursement_status of Loan'''
 		loan_principal, disbursement_status = frappe.get_value(
 				'Loan',
 				self.loan,
 				['loan_principal', 'disbursement_status']
 			)
-		undisbersed_principal = get_undisbersed_principal(self.loan)
-		if undisbersed_principal <= loan_principal:
+		undisbursed_principal = get_undisbursed_principal(self.loan)
+		if undisbursed_principal <= loan_principal:
 			loan = frappe.get_doc('Loan', self.loan)
-			if undisbersed_principal > 0:
+			if undisbursed_principal > 0:
 				if disbursement_status == 'Partially Disbursed':
 					return None
 				loan.disbursement_status = 'Partially Disbursed'

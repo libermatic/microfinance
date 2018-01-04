@@ -16,9 +16,6 @@ description = {
 	}
 
 def make_row(result, accounts):
-	# details = 'Ref: {}'.format(result.get('voucher_no'))
-	# if result.get('transaction_details'):
-	# 	details += '. {}'.format(result.get('transaction_details'))
 	row = [
 		result.get('posting_date'),
 		result.get('transaction_details'),

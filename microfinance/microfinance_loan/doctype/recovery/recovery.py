@@ -84,6 +84,7 @@ class Recovery(AccountsController):
 		return je.name
 
 	def update_loan_status(self):
+		'''Method update recovery_status of Loan'''
 		disbursement_status, recovery_status = frappe.get_value(
 				'Loan',
 				self.loan,
