@@ -20,9 +20,9 @@ class Loan(Document):
 			frappe.throw('Cannot decrease principal')
 		self.loan_principal += amount
 		if not self.calculation_slab == application.calculation_slab:
-			self.calculation_slab == application.calculation_slab
+			self.calculation_slab = application.calculation_slab
 		if self.disbursement_status == 'Fully Disbursed':
-			self.disbursement_status == 'Partially Disbursed'
+			self.disbursement_status = 'Partially Disbursed'
 		self.save()
 
 @frappe.whitelist()
