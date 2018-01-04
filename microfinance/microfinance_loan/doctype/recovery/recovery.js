@@ -9,6 +9,20 @@ function calculate_total(frm) {
   );
 }
 
+async function toggle_cheque_fields(frm) {
+  const { payment_account } = frm.doc;
+  if (payment_account) {
+    const { message } = await frappe.db.get_value(
+      'Account',
+      payment_account,
+      'account_type'
+    );
+    const show_field = message['account_type'] === 'Bank';
+    frm.toggle_display(['cheque_no', 'cheque_date'], show_field);
+    frm.toggle_reqd(['cheque_no', 'cheque_date'], show_field);
+  }
+}
+
 frappe.ui.form.on('Recovery', {
   refresh: function() {
     frappe.ui.form.on('Recovery Charge', {
@@ -26,6 +40,7 @@ frappe.ui.form.on('Recovery', {
         frm.set_value('mode_of_payment', mode_of_payment);
       }
     }
+    toggle_cheque_fields(frm);
   },
   loan: async function(frm) {
     const [{ message: interest_amount = 0 }, { message }] = await Promise.all([
@@ -65,5 +80,6 @@ frappe.ui.form.on('Recovery', {
     frm.set_value('principal', amount - interest);
     calculate_total(frm);
   },
+  payment_account: toggle_cheque_fields,
   onsubmit: calculate_total,
 });

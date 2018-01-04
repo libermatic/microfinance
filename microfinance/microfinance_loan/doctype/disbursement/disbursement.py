@@ -25,7 +25,16 @@ class Disbursement(AccountsController):
 		self.check_permission('write')
 		je = frappe.new_doc('Journal Entry')
 		je.title = self.customer
-		je.voucher_type = 'Cash Entry'
+		if self.mode_of_payment == 'Cash':
+			je.voucher_type = 'Cash Entry'
+		elif self.mode_of_payment in ['Cheque', 'Bank Draft', 'Wire Transfer']:
+			je.voucher_type = 'Bank Entry'
+			je.cheque_no = self.cheque_no
+			je.cheque_date = self.cheque_date
+		elif self.mode_of_payment == 'Credit Card':
+			je.voucher_type = 'Credit Card Entry'
+		else:
+			je.voucher_type = 'Journal Entry'
 		je.user_remark = _('Against Loan: {0}. Disbursement Doc: {1}').format(self.loan, self.name)
 		je.company = self.company
 		je.posting_date = self.posting_date
