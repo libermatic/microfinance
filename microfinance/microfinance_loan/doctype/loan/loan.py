@@ -55,6 +55,16 @@ def get_outstanding_principal(loan, date=today()):
 		""".format(" AND ".join(cond)))[0][0] or 0
 	return principal
 
+@frappe.whitelist()
+def get_recovered_principal(loan, date=today()):
+	'''Get recovered principal'''
+	recovered = frappe.db.sql("""
+			SELECT SUM(principal)
+			FROM `tabRecovery`
+			WHERE docstatus=1 AND loan='{}'
+		""".format(loan))[0][0]
+	return flt(recovered)
+
 def get_interval(day_of_month, date_obj):
 	'''Returns start and end date of the interval'''
 	try:

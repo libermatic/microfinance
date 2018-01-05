@@ -1,6 +1,11 @@
+import frappe
 from frappe import _
 
-def get_data():
+from microfinance.microfinance_loan.doctype.loan.loan \
+	import get_undisbursed_principal, get_outstanding_principal, get_recovered_principal
+
+
+def get_data(d=None):
 	return {
 		'fieldname': 'loan',
 		'non_standard_fieldnames': {
@@ -17,3 +22,22 @@ def get_data():
 			}
 		]
 	}
+
+@frappe.whitelist()
+def get_loan_chart_data(docname):
+	recovered = get_recovered_principal(docname)
+	outstanding = get_outstanding_principal(docname)
+	undisbursed = get_undisbursed_principal(docname)
+
+	data = {
+		'labels': [
+				'Recovered', 'Outstanding', 'Undisbursed'
+			],
+		'datasets': [
+			{
+				'title': "Total",
+				'values': [recovered, outstanding, undisbursed]
+			},
+		]
+	}
+	return data

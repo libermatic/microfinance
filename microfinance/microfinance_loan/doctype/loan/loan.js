@@ -1,9 +1,29 @@
 // Copyright (c) 2017, Libermatic and contributors
 // For license information, please see license.txt
 
+async function render_graph(frm) {
+  const chart_area = frm.$wrapper.find('.form-graph');
+  const { message: data } = await frappe.call({
+    method:
+      'microfinance.microfinance_loan.doctype.loan.loan_dashboard.get_loan_chart_data',
+    args: { docname: frm.doc['name'] },
+  });
+  if (data) {
+    chart_area.empty().removeClass('hidden');
+    const chart = new Chart({
+      parent: chart_area.selector,
+      title: 'Principal Summary',
+      data: data,
+      type: 'percentage',
+      colors: ['green', 'orange', 'blue'],
+    });
+  }
+}
+
 frappe.ui.form.on('Loan', {
   refresh: function(frm) {
     if (frm.doc.docstatus === 1) {
+      render_graph(frm);
       frm.set_df_property('loan_principal', 'read_only', 1);
       const { disbursement_status, recovery_status } = frm.doc;
       if (['Sanctioned', 'Partially Disbursed'].includes(disbursement_status)) {
