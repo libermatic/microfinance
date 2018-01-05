@@ -42,18 +42,28 @@ class Disbursement(AccountsController):
 		je.posting_date = self.posting_date
 		account_amt_list = []
 		account_amt_list.append({
-				'account': self.loan_account,
-				'debit_in_account_currency': self.amount,
-				'reference_type': 'Loan',
-				'reference_name': self.loan,
-			})
-		account_amt_list.append({
 				'account': self.payment_account,
 				'credit_in_account_currency': self.amount,
 				'reference_type': 'Loan',
 				'reference_name': self.loan,
 				'transaction_details': 'Disbursement'
 			})
+		account_amt_list.append({
+				'account': self.loan_account,
+				'debit_in_account_currency': self.amount,
+				'reference_type': 'Loan',
+				'reference_name': self.loan,
+			})
+		if self.loan_charges:
+			for row in self.loan_charges:
+				account_amt_list[0]['credit_in_account_currency'] -= row.charge_amount
+				account_amt_list.append({
+						'account': row.charge_account,
+						'credit_in_account_currency': row.charge_amount,
+						'reference_type': 'Loan',
+						'reference_name': self.loan,
+						'transaction_details': row.charge
+					})
 		je.set("accounts", account_amt_list)
 		je.insert()
 		je.submit()

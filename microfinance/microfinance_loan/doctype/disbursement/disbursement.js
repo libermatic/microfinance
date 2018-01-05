@@ -1,6 +1,14 @@
 // Copyright (c) 2017, Libermatic and contributors
 // For license information, please see license.txt
 
+function calculate_total(frm) {
+  const { amount = 0, loan_charges = [] } = frm.doc;
+  frm.set_value(
+    'total',
+    amount - loan_charges.reduce((a, { charge_amount: x = 0 }) => a + x, 0)
+  );
+}
+
 async function toggle_cheque_fields(frm) {
   const { payment_account } = frm.doc;
   if (payment_account) {
@@ -16,6 +24,12 @@ async function toggle_cheque_fields(frm) {
 }
 
 frappe.ui.form.on('Disbursement', {
+  refresh: function() {
+    frappe.ui.form.on('Other Loan Charge', {
+      charge_amount: calculate_total,
+      loan_charges_remove: calculate_total,
+    });
+  },
   onload: async function(frm) {
     if (frm.doc.__islocal) {
       const { message } = await frappe.db.get_value('Loan Settings', null, [
@@ -54,5 +68,7 @@ frappe.ui.form.on('Disbursement', {
       frm.set_value('payment_account', message.account);
     }
   },
+  amount: calculate_total,
   payment_account: toggle_cheque_fields,
+  onsubmit: calculate_total,
 });
