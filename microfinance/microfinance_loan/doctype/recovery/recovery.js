@@ -5,7 +5,7 @@ function calculate_total(frm) {
   const { amount = 0, loan_charges = [] } = frm.doc;
   frm.set_value(
     'total',
-    amount + loan_charges.reduce((a, { charge_amount: x }) => a + x, 0)
+    amount + loan_charges.reduce((a, { charge_amount: x = 0 }) => a + x, 0)
   );
 }
 function calculate_amount(frm) {
@@ -29,7 +29,7 @@ async function toggle_cheque_fields(frm) {
 
 frappe.ui.form.on('Recovery', {
   refresh: function() {
-    frappe.ui.form.on('Recovery Charge', {
+    frappe.ui.form.on('Other Loan Charge', {
       charge_amount: calculate_total,
       loan_charges_remove: calculate_total,
     });
