@@ -8,6 +8,10 @@ function calculate_total(frm) {
     amount + loan_charges.reduce((a, { charge_amount: x }) => a + x, 0)
   );
 }
+function calculate_amount(frm) {
+  const { principal = 0, interest = 0 } = frm.doc;
+  frm.set_value('amount', principal + interest);
+}
 
 async function toggle_cheque_fields(frm) {
   const { payment_account } = frm.doc;
@@ -63,7 +67,6 @@ frappe.ui.form.on('Recovery', {
     const { stipulated_recovery_amount = 0 } = message || {};
     frm.set_value('interest', interest_amount);
     frm.set_value('principal', stipulated_recovery_amount);
-    frm.set_value('amount', interest_amount + stipulated_recovery_amount);
   },
   mode_of_payment: async function(frm) {
     const { message } = await frappe.call({
@@ -78,11 +81,9 @@ frappe.ui.form.on('Recovery', {
       frm.set_value('payment_account', message.account);
     }
   },
-  amount: function(frm) {
-    const { amount, interest } = frm.doc;
-    frm.set_value('principal', amount - interest);
-    calculate_total(frm);
-  },
+  principal: calculate_amount,
+  interest: calculate_amount,
+  amount: calculate_total,
   payment_account: toggle_cheque_fields,
   onsubmit: calculate_total,
 });
