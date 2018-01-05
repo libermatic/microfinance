@@ -24,7 +24,9 @@ class Recovery(AccountsController):
 		self.update_loan_status()
 
 	def on_cancel(self):
-		pass
+		je = frappe.get_doc('Journal Entry', self.journal_entry)
+		je.cancel()
+		self.update_loan_status()
 
 	def make_jv_entry(self):
 		self.check_permission('write')
@@ -85,18 +87,28 @@ class Recovery(AccountsController):
 
 	def update_loan_status(self):
 		'''Method update recovery_status of Loan'''
-		disbursement_status, recovery_status = frappe.get_value(
+		disbursement_status, loan_principal, recovery_status = frappe.get_value(
 				'Loan',
 				self.loan,
-				['disbursement_status', 'recovery_status']
+				['disbursement_status', 'loan_principal', 'recovery_status']
 			)
 		outstanding_principal = get_outstanding_principal(self.loan)
 		loan = frappe.get_doc('Loan', self.loan)
+		do_save = False
 		if disbursement_status == 'Fully Disbursed' and outstanding_principal == 0:
 			loan.clear_date = self.posting_date
 			loan.recovery_status = 'Repaid'
+			do_save = True
 		else:
-			if recovery_status == 'In Progress':
-				return None
-			loan.recovery_status = 'In Progress'
-		return loan.save()
+			if outstanding_principal == loan_principal and recovery_status != 'Not Started':
+				loan.recovery_status = 'Not Started'
+				do_save = True
+			elif recovery_status != 'In Progress':
+				loan.recovery_status = 'In Progress'
+				do_save = True
+			if loan.clear_date:
+				loan.clear_date = None
+				do_save = True
+		if do_save:
+			return loan.save()
+		return loan.name

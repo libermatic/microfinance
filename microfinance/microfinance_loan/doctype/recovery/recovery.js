@@ -40,6 +40,9 @@ frappe.ui.form.on('Recovery', {
         frm.set_value('mode_of_payment', mode_of_payment);
       }
     }
+    if (frm.doc.docstatus == 0) {
+      frm.set_value('journal_entry', null);
+    }
     toggle_cheque_fields(frm);
   },
   loan: async function(frm) {

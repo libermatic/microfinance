@@ -19,7 +19,9 @@ class Disbursement(AccountsController):
 		self.update_loan_status()
 
 	def on_cancel(self):
-		pass
+		je = frappe.get_doc('Journal Entry', self.journal_entry)
+		je.cancel()
+		self.update_loan_status()
 
 	def make_jv_entry(self):
 		self.check_permission('write')
@@ -65,12 +67,13 @@ class Disbursement(AccountsController):
 				['loan_principal', 'disbursement_status']
 			)
 		undisbursed_principal = get_undisbursed_principal(self.loan)
+		loan = frappe.get_doc('Loan', self.loan)
 		if undisbursed_principal <= loan_principal:
-			loan = frappe.get_doc('Loan', self.loan)
-			if undisbursed_principal > 0:
-				if disbursement_status == 'Partially Disbursed':
-					return None
+			if undisbursed_principal == loan_principal and disbursement_status != 'Sanctioned':
+				loan.disbursement_status = 'Sanctioned'
+			elif undisbursed_principal > 0 and disbursement_status != 'Partially Disbursed':
 				loan.disbursement_status = 'Partially Disbursed'
 			else:
 				loan.disbursement_status = 'Fully Disbursed'
-		return loan.save()
+			return loan.save()
+		return loan.name
