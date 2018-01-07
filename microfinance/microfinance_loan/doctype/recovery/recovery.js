@@ -52,6 +52,9 @@ frappe.ui.form.on('Recovery', {
         'There are still a few items being loaded. Please wait for a while and retry.'
       );
     }
+    if (frm.doc['total']) {
+      frappe.throw('Cannot do transaction of zero values.');
+    }
   },
   refresh: function() {
     frappe.ui.form.on('Other Loan Charge', {

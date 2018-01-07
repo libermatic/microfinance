@@ -24,6 +24,11 @@ async function toggle_cheque_fields(frm) {
 }
 
 frappe.ui.form.on('Disbursement', {
+  validate: function(frm) {
+    if (frm.doc['total']) {
+      frappe.throw('Cannot do transaction of zero values.');
+    }
+  },
   refresh: function() {
     frappe.ui.form.on('Other Loan Charge', {
       charge_amount: calculate_total,
