@@ -5,14 +5,15 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.utils import flt
 from erpnext.controllers.accounts_controller import AccountsController
 
 from microfinance.microfinance_loan.doctype.loan.loan import get_outstanding_principal
 
 class Recovery(AccountsController):
 	def validate(self):
-		outstanding_principal = get_outstanding_principal(self.loan, self.posting_date) + self.interest
-		if self.amount > outstanding_principal:
+		outstanding_principal = get_outstanding_principal(self.loan, self.posting_date)
+		if self.amount > outstanding_principal + flt(self.interest):
 			frappe.throw(_(
 					"Cannot recover more that the outstanding principal: {}"
 						.format(outstanding_principal)
