@@ -40,8 +40,18 @@
 
 {% set cust_doc = frappe.get_doc("Customer", doc.customer) %}
 
-{% if cleared %}
-<h2>Clearance Certificate</h2>
+{% set title = _("Clearance Certificate") if cleared else _("Pending Loan")%}
+<h2>{{ title }}</h2>
+
+{% if not cleared %}
+<div class="cert-no-clear">
+  It seems Loan
+  <strong>{{ doc.name }}</strong>
+  for
+  <strong>{{ cust_doc.get("salutation") or "" }} {{ doc.customer_name }}</strong>
+  has not been cleared yet.
+</div>
+{% endif %}
 
 <div class="cert-body">
   <p>
@@ -79,12 +89,3 @@
     This is for your kind information and necessary process.
   </p>
 </div>
-{% else %}
-<div class="cert-no-clear">
-  It seems Loan
-  <strong>{{ doc.name }}</strong>
-  for
-  <strong>{{ cust_doc.get("salutation") or "" }} {{ doc.customer_name }}</strong>
-  has not been cleared yet.
-</div>
-{% endif %}
