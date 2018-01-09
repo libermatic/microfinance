@@ -50,11 +50,11 @@ frappe.ui.form.on('Loan', {
         ) &&
         ['Not Started', 'In Progress'].includes(recovery_status)
       ) {
-        frm
-          .add_custom_button(__('Recover'), function() {
-            frm.make_new('Recovery');
-          })
-          .addClass('btn-primary');
+        const btn = frm.add_custom_button(__('Recover'), function() {
+          frm.make_new('Recovery');
+        });
+        if (disbursement_status === 'Fully Disbursed')
+          btn.addClass('btn-primary');
       }
     }
     if (frm.doc.docstatus > 0) {
