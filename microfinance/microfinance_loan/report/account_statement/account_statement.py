@@ -7,15 +7,7 @@ from frappe import _
 from functools import reduce
 from frappe.utils import flt
 
-description = {
-		'disbursement': 'Disbursed',
-		'recovery': 'recovered',
-		'interest': 'inte',
-		'interest_converted_to_principal': '',
-		'processing_fees': '',
-	}
-
-def make_row(result, accounts):
+def make_row(result):
 	row = [
 		result.get('posting_date'),
 		result.get('transaction_details'),
@@ -82,12 +74,8 @@ def execute(filters=None):
 	data = [
 		[None, _("Opening"), opening_credit, opening_debit, None]
 	]
-	accounts = {
-			'payment_account': 'Cash - C',
-			'interest_income_account': interest_income_account
-		}
 	for result in results:
-		row = make_row(result, accounts)
+		row = make_row(result)
 		if row:
 			data.append(row)
 

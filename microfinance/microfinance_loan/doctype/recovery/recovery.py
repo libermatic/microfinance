@@ -53,7 +53,7 @@ class Recovery(AccountsController):
 				'debit_in_account_currency': self.amount,
 				'reference_type': 'Loan',
 				'reference_name': self.loan,
-				'transaction_details': 'Repayment'
+				'transaction_details': 'Receipt'
 			})
 		principal = self.amount
 		if self.interest > 0:
