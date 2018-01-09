@@ -46,6 +46,13 @@ frappe.ui.form.on('Loan', {
           .addClass('btn-primary');
       }
     }
+    if (frm.doc.docstatus > 0) {
+      frm.page.add_menu_item(__('Account Statement'), function(e) {
+        frappe.set_route('query-report', 'Account Statement', {
+          loan: frm.doc['name'],
+        });
+      });
+    }
   },
   onload: async function(frm) {
     if (frm.doc.__islocal) {
