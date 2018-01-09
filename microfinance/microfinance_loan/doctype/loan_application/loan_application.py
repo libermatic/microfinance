@@ -7,6 +7,7 @@ from datetime import date
 import frappe
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
+from frappe.utils.data import getdate, today
 
 class LoanApplication(Document):
 	def before_submit(self):
@@ -38,12 +39,27 @@ def approve(name, loan_no=None):
 					['interest_income_account', 'loan_account']
 				)
 			target.update({
-				'loan_no': loan_no,
-				'posting_date': date.today(),
-				'loan_principal': source.amount,
-				'loan_account': loan_account,
-				'interest_income_account': interest_income_account
-			})
+					'loan_no': loan_no,
+					'posting_date': today(),
+					'loan_principal': source.amount,
+					'loan_account': loan_account,
+					'interest_income_account': interest_income_account
+				})
+			recovery_frequency, day, billing_day = frappe.get_value(
+					'Loan Plan',
+					loan_application.loan_plan,
+					['recovery_frequency', 'day', 'billing_day']
+				)
+			if recovery_frequency == 'Weekly':
+				target.update({
+						'day': day
+					})
+			elif recovery_frequency == 'Monthly':
+				bd = getdate(billing_day).day
+				billing_date = getdate(target.posting_date).replace(day=bd)
+				target.update({
+						'billing_date': billing_date
+					})
 		fields = get_mapped_doc('Loan Application', name, {
 				'Loan Application': {
 						'doctype': 'Loan',
