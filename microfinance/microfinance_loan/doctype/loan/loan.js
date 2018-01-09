@@ -21,7 +21,6 @@ async function render_chart(frm) {
       data,
       colors: ['green', 'orange', 'blue'],
     });
-    console.log(chart);
     $(chart.container)
       .find('.title')
       .addClass('hidden');

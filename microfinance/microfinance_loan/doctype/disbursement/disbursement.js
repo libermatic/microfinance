@@ -25,15 +25,18 @@ async function toggle_cheque_fields(frm) {
 
 frappe.ui.form.on('Disbursement', {
   validate: function(frm) {
-    if (frm.doc['total']) {
+    if (!frm.doc['total']) {
       frappe.throw('Cannot do transaction of zero values.');
     }
   },
-  refresh: function() {
+  refresh: function(frm) {
     frappe.ui.form.on('Other Loan Charge', {
       charge_amount: calculate_total,
       loan_charges_remove: calculate_total,
     });
+    if (frm.doc.docstatus > 0 && !frm.doc['recovered_partially']) {
+      frm.set_df_property('recovered_partially', 'hidden', 1);
+    }
   },
   onload: async function(frm) {
     if (frm.doc.__islocal) {
@@ -63,6 +66,12 @@ frappe.ui.form.on('Disbursement', {
     frm.set_value('customer', message['customer']);
     frm.set_value('amount', amount);
   },
+  amount: calculate_total,
+  recovered_partially: function(frm) {
+    if (!frm.doc['recovered_partially']) {
+      frm.set_value('recovered_amount', null);
+    }
+  },
   mode_of_payment: async function(frm) {
     const { message } = await frappe.call({
       method:
@@ -76,7 +85,6 @@ frappe.ui.form.on('Disbursement', {
       frm.set_value('payment_account', message.account);
     }
   },
-  amount: calculate_total,
   payment_account: toggle_cheque_fields,
   onsubmit: calculate_total,
 });

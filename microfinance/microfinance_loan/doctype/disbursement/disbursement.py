@@ -6,13 +6,16 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from erpnext.controllers.accounts_controller import AccountsController
+from frappe.utils.data import fmt_money
 
 from microfinance.microfinance_loan.doctype.loan.loan import get_undisbursed_principal
 
 class Disbursement(AccountsController):
 	def validate(self):
 		if self.amount > get_undisbursed_principal(self.loan):
-			frappe.throw(_("Disbursed amount cannot be greater than sanctioned amount"))
+			frappe.throw(_("Disbursed amount cannot exceed the sanctioned amount"))
+		if self.recovered_amount >= self.amount:
+			frappe.throw(_("Recovered amount cannot be equal to or exceed the disbursed amount"))
 	def on_submit(self):
 		self.journal_entry = self.make_jv_entry()
 		self.save()
@@ -41,16 +44,25 @@ class Disbursement(AccountsController):
 		je.company = self.company
 		je.posting_date = self.posting_date
 		account_amt_list = []
+		amount = self.amount
+		transaction_details = 'Disbursement'
+		if self.recovered_partially:
+			amount -= self.recovered_amount
+			transaction_details = 'Opening for original {}'.format(fmt_money(
+					self.amount,
+					precision=0,
+					currency=frappe.defaults.get_user_default('currency')
+				))
 		account_amt_list.append({
 				'account': self.payment_account,
-				'credit_in_account_currency': self.amount,
+				'credit_in_account_currency': amount,
 				'reference_type': 'Loan',
 				'reference_name': self.loan,
-				'transaction_details': 'Disbursement'
+				'transaction_details': transaction_details
 			})
 		account_amt_list.append({
 				'account': self.loan_account,
-				'debit_in_account_currency': self.amount,
+				'debit_in_account_currency': amount,
 				'reference_type': 'Loan',
 				'reference_name': self.loan,
 			})
