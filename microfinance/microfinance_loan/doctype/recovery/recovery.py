@@ -8,7 +8,8 @@ from frappe import _
 from frappe.utils import flt
 from erpnext.controllers.accounts_controller import AccountsController
 
-from microfinance.microfinance_loan.doctype.loan.loan import get_outstanding_principal
+from microfinance.microfinance_loan.doctype.loan.loan \
+	import get_outstanding_principal, get_billing_period
 
 class Recovery(AccountsController):
 	def validate(self):
@@ -43,7 +44,7 @@ class Recovery(AccountsController):
 			je.voucher_type = 'Credit Card Entry'
 		else:
 			je.voucher_type = 'Journal Entry'
-		je.user_remark = _('Against Loan: {0}. Recovery Doc: {1}').format(self.loan, self.name)
+		je.user_remark = _('Against Loan: {0}. Recovery Doc: {1}.').format(self.loan, self.name)
 		je.company = self.company
 		je.posting_date = self.posting_date
 		account_amt_list = []
@@ -56,12 +57,13 @@ class Recovery(AccountsController):
 			})
 		principal = self.amount
 		if self.interest > 0:
+			je.user_remark += _(' For {}.'.format(self.billing_period))
 			account_amt_list.append({
 				'account': self.interest_income_account,
 				'credit_in_account_currency': self.interest,
 				'reference_type': 'Loan',
 				'reference_name': self.loan,
-				'transaction_details': 'Interest on loan'
+				'transaction_details': 'Interest for {}'.format(self.billing_period)
 			})
 			principal = principal - self.interest
 		if principal:

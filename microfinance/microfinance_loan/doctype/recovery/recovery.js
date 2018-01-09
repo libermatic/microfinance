@@ -27,6 +27,28 @@ async function toggle_cheque_fields(frm) {
   }
 }
 
+async function get_amount_and_period(frm) {
+  const { loan, interval_date } = frm.doc;
+  const [{ message = {} }, { message: period = [] }] = await Promise.all([
+    frappe.db.get_value('Loan', loan, 'stipulated_recovery_amount'),
+    frappe.call({
+      method:
+        'microfinance.microfinance_loan.doctype.loan.loan.get_billing_period',
+      args: { loan, interval_date },
+    }),
+  ]);
+  const { stipulated_recovery_amount = 0 } = message;
+  const [start_date, end_date] = period;
+  const { message: interest_amount } = await frappe.call({
+    method:
+      'microfinance.microfinance_loan.doctype.loan.loan.get_interest_amount',
+    args: { loan, start_date, end_date },
+  });
+  frm.set_value('interest', interest_amount);
+  frm.set_value('principal', stipulated_recovery_amount);
+  frm.set_value('billing_period', period.join(' - '));
+}
+
 class LoadingHandler {
   constructor() {
     this.entities = [];
@@ -52,7 +74,7 @@ frappe.ui.form.on('Recovery', {
         'There are still a few items being loaded. Please wait for a while and retry.'
       );
     }
-    if (frm.doc['total']) {
+    if (!frm.doc['total']) {
       frappe.throw('Cannot do transaction of zero values.');
     }
   },
@@ -88,25 +110,24 @@ frappe.ui.form.on('Recovery', {
   loan: async function(frm) {
     try {
       this.loading.append('amount');
-      const [{ message: interest_amount = 0 }, { message }] = await Promise.all(
-        [
-          frappe.call({
-            method:
-              'microfinance.microfinance_loan.doctype.loan.loan.get_interest_amount',
-            args: {
-              loan: frm.doc.loan,
-            },
-          }),
-          frappe.db.get_value(
-            'Loan',
-            frm.doc['loan'],
-            'stipulated_recovery_amount'
-          ),
-        ]
-      );
-      const { stipulated_recovery_amount = 0 } = message || {};
-      frm.set_value('interest', interest_amount);
-      frm.set_value('principal', stipulated_recovery_amount);
+      await get_amount_and_period(frm);
+    } catch (e) {
+      console.log(e);
+      frappe.throw(e.toString());
+    } finally {
+      this.loading.remove('amount');
+    }
+  },
+  posting_date: function(frm) {
+    frm.set_value('interval_date', frm.doc['posting_date']);
+  },
+  principal: calculate_amount,
+  interest: calculate_amount,
+  amount: calculate_total,
+  interval_date: async function(frm) {
+    try {
+      this.loading.append('amount');
+      await get_amount_and_period(frm);
     } catch (e) {
       frappe.throw(e.toString());
     } finally {
@@ -133,9 +154,6 @@ frappe.ui.form.on('Recovery', {
       this.loading.remove('account');
     }
   },
-  principal: calculate_amount,
-  interest: calculate_amount,
-  amount: calculate_total,
   payment_account: toggle_cheque_fields,
   onsubmit: calculate_total,
 });
