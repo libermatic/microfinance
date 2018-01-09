@@ -1,6 +1,11 @@
 // Copyright (c) 2017, Libermatic and contributors
 // For license information, please see license.txt
 
+function reset_chart(frm) {
+  const chart_area = frm.$wrapper.find('.form-graph');
+  chart_area.empty().addClass('hidden');
+}
+
 async function render_chart(frm) {
   const chart_area = frm.$wrapper.find('.form-graph');
   chart_area.empty().removeClass('hidden');
@@ -16,11 +21,19 @@ async function render_chart(frm) {
       data,
       colors: ['green', 'orange', 'blue'],
     });
+    console.log(chart);
+    $(chart.container)
+      .find('.title')
+      .addClass('hidden');
+    $(chart.container)
+      .find('.sub-title')
+      .addClass('hidden');
   }
 }
 
 frappe.ui.form.on('Loan', {
   refresh: function(frm) {
+    reset_chart(frm);
     if (frm.doc.docstatus === 1) {
       render_chart(frm);
       frm.set_df_property('loan_principal', 'read_only', 1);
@@ -75,18 +88,6 @@ frappe.ui.form.on('Loan', {
       frm.set_value('letter_head', letter_head['name']);
     }
   },
-  validate: function(frm) {
-    if (frm.doc['recovery_frequency'] === 'Monthly') {
-      const { billing_date, due_date } = frm.doc;
-      if (
-        !microfinance.utils.check_billing_vs_due_date(billing_date, due_date)
-      ) {
-        frappe.throw(
-          __('Due Day must after Billing Date and should be within 30 days')
-        );
-      }
-    }
-  },
   customer: async function(frm) {
     const { message: customer_address } = await frappe.call({
       method:
@@ -99,22 +100,18 @@ frappe.ui.form.on('Loan', {
     const { message = {} } = await frappe.db.get_value(
       'Loan Plan',
       frm.doc['loan_plan'],
-      ['recovery_frequency', 'day', 'billing_day', 'due_day']
+      ['recovery_frequency', 'day', 'billing_day']
     );
-    const { recovery_frequency, day, billing_day, due_day } = message;
+    const { recovery_frequency, day, billing_day } = message;
     frm.set_value('day', null);
     frm.set_value('billing_date', null);
-    frm.set_value('due_date', null);
     if (recovery_frequency === 'Weekly') {
       frm.set_value('day', day);
     } else if (recovery_frequency === 'Monthly') {
       const { posting_date } = frm.doc;
       const bd = moment(billing_day).date();
-      const dd_days_after_bd = moment(due_day).diff(billing_day, 'days');
-      let billing_date = moment(posting_date).date(bd);
-      let due_date = moment(billing_date).add(dd_days_after_bd, 'days');
+      const billing_date = moment(posting_date).date(bd);
       frm.set_value('billing_date', billing_date);
-      frm.set_value('due_date', due_date);
     }
   },
 });
