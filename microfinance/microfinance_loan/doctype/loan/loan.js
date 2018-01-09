@@ -12,8 +12,8 @@ async function render_chart(frm) {
   if (data) {
     const chart = new Chart({
       parent: chart_area.selector,
-      data: data,
       type: 'percentage',
+      data,
       colors: ['green', 'orange', 'blue'],
     });
   }

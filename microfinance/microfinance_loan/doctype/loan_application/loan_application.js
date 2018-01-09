@@ -50,16 +50,23 @@ frappe.ui.form.on('Loan Application', {
             },
           ],
         });
-        loan_dialog.set_primary_action(
+        const button = loan_dialog.set_primary_action(
           __(current_loan ? 'Add' : 'Create'),
           async function({ loan_no }) {
-            const { message: loan } = await frappe.call({
-              method:
-                'microfinance.microfinance_loan.doctype.loan_application.loan_application.approve',
-              args: { name: frm.doc['name'], loan_no },
-            });
-            frm.reload_doc();
-            frappe.set_route('Form', 'Loan', loan);
+            try {
+              button.addClass('disabled');
+              const { message: loan } = await frappe.call({
+                method:
+                  'microfinance.microfinance_loan.doctype.loan_application.loan_application.approve',
+                args: { name: frm.doc['name'], loan_no },
+              });
+              frm.reload_doc();
+              frappe.set_route('Form', 'Loan', loan);
+            } catch (e) {
+              frappe.throw(e.toString());
+            } finally {
+              button.removeClass('disabled');
+            }
           }
         );
         frm
@@ -172,6 +179,10 @@ frappe.ui.form.on('Loan Application', {
   },
   customer: function(frm) {
     set_loan_fields(frm, { unset: true });
+    frm.set_value(
+      'required_by_date',
+      frm.doc['posting_date'] || frappe.datetime.nowdate()
+    );
   },
   loan_plan: async function(frm) {
     if (!frm.doc['loan']) {
