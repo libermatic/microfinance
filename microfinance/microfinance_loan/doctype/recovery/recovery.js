@@ -110,9 +110,12 @@ frappe.ui.form.on('Recovery', {
   loan: async function(frm) {
     try {
       this.loading.append('amount');
-      await get_amount_and_period(frm);
+      const [{ message = {} }] = await Promise.all([
+        frappe.db.get_value('Loan', frm.doc['loan'], 'customer'),
+        get_amount_and_period(frm),
+      ]);
+      frm.set_value('customer', message['customer']);
     } catch (e) {
-      console.log(e);
       frappe.throw(e.toString());
     } finally {
       this.loading.remove('amount');

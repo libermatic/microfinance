@@ -51,14 +51,17 @@ frappe.ui.form.on('Disbursement', {
     toggle_cheque_fields(frm);
   },
   loan: async function(frm) {
-    const { message } = await frappe.call({
-      method:
-        'microfinance.microfinance_loan.doctype.loan.loan.get_undisbursed_principal',
-      args: {
-        loan: frm.doc.loan,
-      },
-    });
-    frm.set_value('amount', message);
+    const { loan } = frm.doc;
+    const [{ message = {} }, { message: amount = 0 }] = await Promise.all([
+      frappe.db.get_value('Loan', frm.doc['loan'], 'customer'),
+      frappe.call({
+        method:
+          'microfinance.microfinance_loan.doctype.loan.loan.get_undisbursed_principal',
+        args: { loan },
+      }),
+    ]);
+    frm.set_value('customer', message['customer']);
+    frm.set_value('amount', amount);
   },
   mode_of_payment: async function(frm) {
     const { message } = await frappe.call({

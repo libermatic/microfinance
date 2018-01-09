@@ -28,8 +28,10 @@ class Loan(Document):
 		self.save()
 
 @frappe.whitelist()
-def get_undisbursed_principal(loan):
+def get_undisbursed_principal(loan=None):
 	'''Gets undisbursed principal'''
+	if not loan:
+		return None
 	full_principal = frappe.get_value('Loan', loan, 'loan_principal')
 	disbursed_principal = frappe.db.sql("""
 			SELECT SUM(amount)
