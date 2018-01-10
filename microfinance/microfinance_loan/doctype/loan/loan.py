@@ -84,7 +84,7 @@ def get_interval(day_of_month, date_obj):
 		end_date = date_obj.replace(day=day_of_month)
 	except ValueError:
 		end_date = get_last_day(date_obj)
-	if date_diff(end_date, date_obj) < 0:
+	if date_diff(end_date, date_obj) <= 0:
 		end_date = add_months(end_date, 1)
 	if end_date.day >= day_of_month:
 		end_date = add_days(end_date, -1)

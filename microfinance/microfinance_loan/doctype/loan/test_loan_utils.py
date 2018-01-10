@@ -37,3 +37,7 @@ class TestLoanUtils(unittest.TestCase):
                 get_interval(31, '2018-02-12'),
                 (date(year=2018, month=1, day=31), date(year=2018, month=2, day=28))
             )
+        self.assertEqual(
+                get_interval(1, '2017-09-01'),
+                (date(year=2017, month=9, day=1), date(year=2017, month=9, day=30))
+            )
