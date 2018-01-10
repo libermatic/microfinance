@@ -21,6 +21,7 @@ def execute(filters=None):
 	result = frappe.db.sql("""
 			SELECT posting_date, name, customer, loan_principal
 			FROM `tabLoan`
+			WHERE docstatus = 1
 		""")
 	data = []
 	for row in result:

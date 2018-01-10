@@ -30,6 +30,9 @@ frappe.ui.form.on('Disbursement', {
     }
   },
   refresh: function(frm) {
+    frm.fields_dict['loan'].get_query = doc => ({
+      filters: { docstatus: 1 },
+    });
     frappe.ui.form.on('Other Loan Charge', {
       charge_amount: calculate_total,
       loan_charges_remove: calculate_total,

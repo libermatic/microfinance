@@ -78,7 +78,10 @@ frappe.ui.form.on('Recovery', {
       frappe.throw('Cannot do transaction of zero values.');
     }
   },
-  refresh: function() {
+  refresh: function(frm) {
+    frm.fields_dict['loan'].get_query = doc => ({
+      filters: { docstatus: 1 },
+    });
     frappe.ui.form.on('Other Loan Charge', {
       charge_amount: calculate_total,
       loan_charges_remove: calculate_total,
