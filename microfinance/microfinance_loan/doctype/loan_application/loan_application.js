@@ -184,6 +184,9 @@ frappe.ui.form.on('Loan Application', {
       frm.doc['posting_date'] || frappe.datetime.nowdate()
     );
   },
+  posting_date: function(frm) {
+    frm.set_value('required_by_date', frm.doc['posting_date']);
+  },
   loan_plan: async function(frm) {
     if (!frm.doc['loan']) {
       const { message = {} } = await frappe.db.get_value(
