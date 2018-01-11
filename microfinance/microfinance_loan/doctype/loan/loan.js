@@ -30,6 +30,27 @@ async function render_chart(frm) {
   }
 }
 
+async function set_billing_date(frm) {
+  const { posting_date, loan_plan } = frm.doc;
+  if (posting_date && loan_plan) {
+    const { message = {} } = await frappe.db.get_value('Loan Plan', loan_plan, [
+      'recovery_frequency',
+      'day',
+      'billing_day',
+    ]);
+    const { recovery_frequency, day, billing_day } = message;
+    frm.set_value('day', null);
+    frm.set_value('billing_date', null);
+    if (recovery_frequency === 'Weekly') {
+      frm.set_value('day', day);
+    } else if (recovery_frequency === 'Monthly') {
+      const bd = moment(billing_day).date();
+      const billing_date = moment(posting_date).date(bd);
+      frm.set_value('billing_date', billing_date);
+    }
+  }
+}
+
 frappe.ui.form.on('Loan', {
   refresh: function(frm) {
     reset_chart(frm);
@@ -89,22 +110,6 @@ frappe.ui.form.on('Loan', {
     });
     frm.set_value('customer_address', customer_address);
   },
-  loan_plan: async function(frm) {
-    const { message = {} } = await frappe.db.get_value(
-      'Loan Plan',
-      frm.doc['loan_plan'],
-      ['recovery_frequency', 'day', 'billing_day']
-    );
-    const { recovery_frequency, day, billing_day } = message;
-    frm.set_value('day', null);
-    frm.set_value('billing_date', null);
-    if (recovery_frequency === 'Weekly') {
-      frm.set_value('day', day);
-    } else if (recovery_frequency === 'Monthly') {
-      const { posting_date } = frm.doc;
-      const bd = moment(billing_day).date();
-      const billing_date = moment(posting_date).date(bd);
-      frm.set_value('billing_date', billing_date);
-    }
-  },
+  posting_date: set_billing_date,
+  loan_plan: set_billing_date,
 });
