@@ -108,15 +108,15 @@ frappe.ui.form.on('Loan Application', {
         fields: [{ fieldname: 'ht', fieldtype: 'HTML' }],
       });
       const container = $('<table />').addClass(
-        'table table-condensed table-striped'
+        'table table-condensed table-striped table-hover'
       );
       container.append(
         $('<tr />')
-          .append($('<th scope="col" />'))
           .append($('<th scope="col" />').text('Date'))
           .append($('<th scope="col" />').text('Loan'))
           .append($('<th scope="col" />').text('Status'))
           .append($('<th scope="col" class="text-right" />').text('Sanctioned'))
+          .append($('<th scope="col" />'))
       );
       dialog.fields_dict.ht.$wrapper.append(container);
       dialog.set_primary_action(__('Select None'), function() {
@@ -135,28 +135,19 @@ frappe.ui.form.on('Loan Application', {
           calculation_slab,
           stipulated_recovery_amount,
         }) => {
+          const button = $(
+            '<button type="button" class="btn btn-default btn-xs"><i class="octicon octicon-link" /></button>'
+          ).click(function(e) {
+            e.stopPropagation();
+            frappe.set_route('Form', 'Loan', name);
+          });
+          const a = $('<td class="text-center" />').html(
+            `<a href="#Form/Loan/${name}"></a>`
+          );
           container.append(
-            $('<tr />')
-              .append(
-                $('<td class="text-center" />').append(
-                  $(
-                    '<i class="octicon octicon-check" style="cursor: pointer;" />'
-                  ).click(function() {
-                    set_loan_fields(frm, {
-                      name,
-                      loan_plan,
-                      rate_of_interest,
-                      calculation_slab,
-                      stipulated_recovery_amount,
-                    });
-                    dialog.hide();
-                  })
-                )
-              )
+            $('<tr style="cursor: pointer;" />')
               .append($('<td />').text(posting_date))
-              .append(
-                $('<td />').html(`<a href="#Form/Loan/${name}">${name}</a>`)
-              )
+              .append($('<td />').html(`<strong>${name}</strong>`))
               .append(
                 $('<td />').text(`${disbursement_status} / ${recovery_status}`)
               )
@@ -169,6 +160,17 @@ frappe.ui.form.on('Loan Application', {
                   )
                 )
               )
+              .append($('<td class="text-right" />').append(button))
+              .click(function() {
+                set_loan_fields(frm, {
+                  name,
+                  loan_plan,
+                  rate_of_interest,
+                  calculation_slab,
+                  stipulated_recovery_amount,
+                });
+                dialog.hide();
+              })
           );
         }
       );
