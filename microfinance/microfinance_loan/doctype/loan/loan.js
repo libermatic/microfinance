@@ -79,12 +79,6 @@ frappe.ui.form.on('Loan', {
         frm.set_value('loan_account', loan_account);
         frm.set_value('interest_income_account', interest_income_account);
       }
-      const { message: letter_head } = await frappe.db.get_value(
-        'Letter Head',
-        { is_default: 1 },
-        'name'
-      );
-      frm.set_value('letter_head', letter_head['name']);
     }
   },
   customer: async function(frm) {
