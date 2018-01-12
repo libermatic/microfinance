@@ -93,12 +93,24 @@ frappe.ui.form.on('Loan', {
       const { message: settings } = await frappe.db.get_value(
         'Loan Settings',
         null,
-        ['loan_account', 'interest_income_account']
+        [
+          'loan_account',
+          'interest_income_account',
+          'interest_receivable_account',
+        ]
       );
       if (settings) {
-        const { loan_account, interest_income_account } = settings;
+        const {
+          loan_account,
+          interest_income_account,
+          interest_receivable_account,
+        } = settings;
         frm.set_value('loan_account', loan_account);
         frm.set_value('interest_income_account', interest_income_account);
+        frm.set_value(
+          'interest_receivable_account',
+          interest_receivable_account
+        );
       }
     }
   },

@@ -92,11 +92,13 @@ frappe.ui.form.on('Recovery', {
     if (frm.doc.__islocal) {
       try {
         this.loading.append('settings');
-        const { message } = await frappe.db.get_value('Loan Settings', null, [
-          'mode_of_payment',
-        ]);
+        const { message } = await frappe.db.get_value(
+          'Loan Settings',
+          null,
+          'mode_of_payment'
+        );
         if (message) {
-          const { mode_of_payment, loan_account } = message;
+          const { mode_of_payment } = message;
           frm.set_value('mode_of_payment', mode_of_payment);
         }
       } catch (e) {
