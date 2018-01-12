@@ -15,5 +15,11 @@ frappe.ui.form.on('Loan Settings', {
         is_group: false,
       },
     });
+    frm.fields_dict['interest_receivable_account'].get_query = doc => ({
+      filters: {
+        account_type: 'Receivable',
+        is_group: false,
+      },
+    });
   },
 });

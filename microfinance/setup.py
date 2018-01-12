@@ -25,14 +25,24 @@ loan_settings_accounts = {
 	'interest_income_account': {
 			'account_name': 'Interests on Loans',
 			'parent_account': 'Indirect Income',
+		},
+	'interest_receivable_account': {
+			'account_name': 'Interests Receivable',
+			'parent_account': 'Accounts Receivable',
 		}
 }
 
 def after_wizard_complete(args=None):
+	'''
+	Create new accounts and set Loan Settings.
+	'''
 	if frappe.defaults.get_global_default('country') != "India":
 		return
 	loan_settings = frappe.get_doc('Loan Settings', None)
-	loan_settings.update({ 'mode_of_payment' : 'Cash' })
+	loan_settings.update({
+			'mode_of_payment' : 'Cash',
+			'cost_center': frappe.db.get_value('Company', args.get('company_name'), 'cost_center')
+		})
 	for key, value in loan_settings_accounts.items():
 		account_name = _create_account(
 				value,
