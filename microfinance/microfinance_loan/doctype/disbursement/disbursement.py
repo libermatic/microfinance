@@ -33,6 +33,14 @@ class Disbursement(AccountsController):
 			gl_entries = self.add_loan_charges_entries()
 			make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
 
+	def get_gl_dict(self, args):
+		gl_dict = frappe._dict({
+				'against_voucher_type': 'Loan',
+				'against_voucher': self.loan
+			})
+		gl_dict.update(args)
+		return super(Disbursement, self).get_gl_dict(gl_dict)
+
 	def add_loan_gl_entries(self):
 		remarks = 'Loan disbursed'
 		if self.recovered_partially:
@@ -45,15 +53,11 @@ class Disbursement(AccountsController):
 				self.get_gl_dict({
 						'account': self.loan_account,
 						'debit': self.amount,
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan
 					}),
 				self.get_gl_dict({
 						'account': self.payment_account,
 						'credit': self.amount,
 						'against': self.customer,
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan,
 						'remarks': remarks
 					})
 			]
@@ -65,35 +69,27 @@ class Disbursement(AccountsController):
 				self.get_gl_dict({
 						'account': self.loan_account,
 						'credit': self.recovered_amount,
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan,
 						'is_opening': True
-					}),
+					})
 				)
 			gl_entries.append(
 				self.get_gl_dict({
 						'account': temp_account,
 						'debit': self.recovered_amount,
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan,
-					}),
+					})
 				)
 			gl_entries.append(
 				self.get_gl_dict({
 						'account': self.payment_account,
 						'debit': self.recovered_amount,
 						'against': self.customer,
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan,
-					}),
+					})
 				)
 			gl_entries.append(
 				self.get_gl_dict({
 						'account': temp_account,
 						'credit': self.recovered_amount,
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan,
-					}),
+					})
 				)
 		return gl_entries
 
@@ -108,8 +104,6 @@ class Disbursement(AccountsController):
 							'account': row.charge_account,
 							'credit': row.charge_amount,
 							'cost_center': cost_center,
-							'against_voucher_type': 'Loan',
-							'against_voucher': self.loan,
 							'remarks': row.charge
 						})
 				)
@@ -118,8 +112,6 @@ class Disbursement(AccountsController):
 						'account': self.payment_account,
 						'debit': total,
 						'against': self.customer,
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan
 					})
 			)
 		return gl_entries

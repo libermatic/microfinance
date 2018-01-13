@@ -40,6 +40,14 @@ class Recovery(AccountsController):
 			gl_entries = self.add_charges_gl_entries()
 			make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
 
+	def get_gl_dict(self, args):
+		gl_dict = frappe._dict({
+				'against_voucher_type': 'Loan',
+				'against_voucher': self.loan
+			})
+		gl_dict.update(args)
+		return super(Recovery, self).get_gl_dict(gl_dict)
+
 	def add_party_gl_entries(self, gl_entries):
 		gl_entries.append(
 				self.get_gl_dict({
@@ -47,8 +55,6 @@ class Recovery(AccountsController):
 						'debit': self.interest,
 						'party_type': 'Customer',
 						'party': self.customer,
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan
 					})
 			)
 		gl_entries.append(
@@ -57,8 +63,6 @@ class Recovery(AccountsController):
 						'credit': self.interest,
 						'party_type': 'Customer',
 						'party': self.customer,
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan
 					})
 			)
 	def add_loan_gl_entries(self, gl_entries):
@@ -67,8 +71,6 @@ class Recovery(AccountsController):
 				self.get_gl_dict({
 						'account': self.loan_account,
 						'credit': capital,
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan
 					})
 			)
 		gl_entries.append(
@@ -76,8 +78,6 @@ class Recovery(AccountsController):
 						'account': self.interest_income_account,
 						'credit': self.interest,
 						'cost_center': frappe.db.get_value('Loan Settings', None, 'cost_center'),
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan,
 						'remarks': 'Interest for period: {}'.format(self.billing_period)
 					})
 			)
@@ -93,8 +93,6 @@ class Recovery(AccountsController):
 						'account': self.payment_account,
 						'debit': self.amount,
 						'against': self.customer,
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan,
 						'remarks': remarks
 					})
 			)
@@ -109,8 +107,6 @@ class Recovery(AccountsController):
 							'account': row.charge_account,
 							'credit': row.charge_amount,
 							'cost_center': cost_center,
-							'against_voucher_type': 'Loan',
-							'against_voucher': self.loan,
 							'remarks': row.charge
 						})
 				)
@@ -119,8 +115,6 @@ class Recovery(AccountsController):
 						'account': self.payment_account,
 						'debit': total,
 						'against': self.customer,
-						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan
 					})
 			)
 		return gl_entries
