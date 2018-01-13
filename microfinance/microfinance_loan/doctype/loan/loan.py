@@ -32,13 +32,21 @@ def get_undisbursed_principal(loan=None):
 	'''Gets undisbursed principal'''
 	if not loan:
 		return None
-	full_principal = frappe.get_value('Loan', loan, 'loan_principal')
+	loan_doc = frappe.get_value(
+			'Loan',
+			loan,
+			['loan_principal', 'loan_account'],
+			as_dict=True
+		)
 	disbursed_principal = frappe.db.sql("""
-			SELECT SUM(amount)
-			FROM `tabDisbursement`
-			WHERE docstatus=1 AND loan='{}'
-		""".format(loan))[0][0]
-	return flt(full_principal) - flt(disbursed_principal)
+			SELECT sum(debit) - sum(credit)
+			FROM `tabGL Entry`
+			WHERE account = '{account}'
+			AND voucher_type = 'Disbursement'
+			AND against_voucher_type = 'Loan'
+			AND against_voucher = '{loan}'
+		""".format(account=loan_doc.get('loan_account'), loan=loan))[0][0]
+	return flt(loan_doc.get('loan_principal')) - flt(disbursed_principal)
 
 @frappe.whitelist()
 def get_outstanding_principal(loan, posting_date=today()):
@@ -48,7 +56,6 @@ def get_outstanding_principal(loan, posting_date=today()):
 	loan_account = frappe.get_value('Loan', loan, 'loan_account')
 	cond = [
 			"account = '{}'".format(loan_account),
-			"voucher_type = 'Journal Entry'",
 			"against_voucher_type = 'Loan'",
 			"against_voucher = '{}'".format(loan),
 			"posting_date <= '{}'".format(posting_date),
@@ -61,13 +68,20 @@ def get_outstanding_principal(loan, posting_date=today()):
 	return principal
 
 @frappe.whitelist()
-def get_recovered_principal(loan, posting_date=today()):
+def get_recovered_principal(loan):
 	'''Get recovered principal'''
+	loan_account = frappe.get_value('Loan', loan, 'loan_account')
 	recovered = frappe.db.sql("""
-			SELECT SUM(principal)
-			FROM `tabRecovery`
-			WHERE docstatus=1 AND loan='{}'
-		""".format(loan))[0][0]
+			SELECT sum(credit) - sum(debit)
+			FROM `tabGL Entry`
+			WHERE account = '{account}'
+			AND voucher_type = 'Recovery'
+			AND against_voucher_type = 'Loan'
+			AND against_voucher = '{loan}'
+		""".format(
+				account=loan_account,
+				loan=loan
+			))[0][0]
 	return flt(recovered)
 
 def get_interval(day_of_month, date_obj):
