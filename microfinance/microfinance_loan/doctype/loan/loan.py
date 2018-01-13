@@ -38,15 +38,18 @@ def get_undisbursed_principal(loan=None):
 			['loan_principal', 'loan_account'],
 			as_dict=True
 		)
+	conds = [
+			"account = '{}'".format(loan_doc.get('loan_account')),
+			"voucher_type = 'Disbursement'",
+			"against_voucher_type = 'Loan'",
+			"against_voucher = '{}'".format(loan)
+		]
 	disbursed_principal = frappe.db.sql("""
-			SELECT sum(debit) - sum(credit)
+			SELECT sum(debit)
 			FROM `tabGL Entry`
-			WHERE account = '{account}'
-			AND voucher_type = 'Disbursement'
-			AND against_voucher_type = 'Loan'
-			AND against_voucher = '{loan}'
-		""".format(account=loan_doc.get('loan_account'), loan=loan))[0][0]
-	return flt(loan_doc.get('loan_principal')) - flt(disbursed_principal)
+			WHERE {}
+		""".format(" AND ".join(conds)))[0][0] or 0
+	return flt(loan_doc.get('loan_principal')) - disbursed_principal
 
 @frappe.whitelist()
 def get_outstanding_principal(loan, posting_date=today()):
@@ -71,18 +74,23 @@ def get_outstanding_principal(loan, posting_date=today()):
 def get_recovered_principal(loan):
 	'''Get recovered principal'''
 	loan_account = frappe.get_value('Loan', loan, 'loan_account')
+
+	conds = [
+			"account = '{}'".format(loan_account),
+			"against_voucher_type = 'Loan'",
+			"against_voucher = '{}'".format(loan)
+		]
 	recovered = frappe.db.sql("""
 			SELECT sum(credit) - sum(debit)
 			FROM `tabGL Entry`
-			WHERE account = '{account}'
-			AND voucher_type = 'Recovery'
-			AND against_voucher_type = 'Loan'
-			AND against_voucher = '{loan}'
-		""".format(
-				account=loan_account,
-				loan=loan
-			))[0][0]
-	return flt(recovered)
+			WHERE voucher_type = 'Recovery' AND {}
+		""".format(" AND ".join(conds)))[0][0] or 0
+	unrecorded = frappe.db.sql("""
+			SELECT sum(credit)
+			FROM `tabGL Entry`
+			WHERE voucher_type = 'Disbursement' AND {}
+		""".format(" AND ".join(conds)))[0][0] or 0
+	return recovered + unrecorded
 
 def get_interval(day_of_month, date_obj):
 	'''Returns start and end date of the interval'''
