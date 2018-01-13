@@ -31,11 +31,19 @@ def execute(filters=None):
 	loan_name = filters.get('loan')
 	from_date = filters.get('from_date')
 	to_date = filters.get('to_date')
-	excluded_accounts = frappe.db.get_value(
+	loan = frappe.db.get_value(
 			'Loan',
 			loan_name,
-			['loan_account', 'interest_receivable_account']
+			['loan_account', 'interest_receivable_account', 'company'],
+			as_dict=True
 		)
+	excluded_accounts = [
+		loan.get('loan_account'),
+		loan.get('interest_receivable_account'),
+		'Temporary Opening - {}'.format(
+				frappe.db.get_value('Company', loan.get('company'), 'abbr')
+			)
+	]
 
 	conds = [
 			"against_voucher_type = 'Loan'",

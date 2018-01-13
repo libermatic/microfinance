@@ -42,21 +42,59 @@ class Disbursement(AccountsController):
 					currency=frappe.defaults.get_user_default('currency')
 				))
 		gl_entries = [
-			self.get_gl_dict({
-					'account': self.loan_account,
-					'debit': self.amount,
-					'against_voucher_type': 'Loan',
-					'against_voucher': self.loan
-				}),
-			self.get_gl_dict({
-					'account': self.payment_account,
-					'credit': self.amount,
-					'against': self.customer,
-					'against_voucher_type': 'Loan',
-					'against_voucher': self.loan,
-					'remarks': remarks
-				})
-		]
+				self.get_gl_dict({
+						'account': self.loan_account,
+						'debit': self.amount,
+						'against_voucher_type': 'Loan',
+						'against_voucher': self.loan
+					}),
+				self.get_gl_dict({
+						'account': self.payment_account,
+						'credit': self.amount,
+						'against': self.customer,
+						'against_voucher_type': 'Loan',
+						'against_voucher': self.loan,
+						'remarks': remarks
+					})
+			]
+		if self.recovered_partially:
+			temp_account = 'Temporary Opening - {}'.format(
+					frappe.db.get_value('Company', self.company, 'abbr')
+				)
+			gl_entries.append(
+				self.get_gl_dict({
+						'account': self.loan_account,
+						'credit': self.recovered_amount,
+						'against_voucher_type': 'Loan',
+						'against_voucher': self.loan,
+						'is_opening': True
+					}),
+				)
+			gl_entries.append(
+				self.get_gl_dict({
+						'account': temp_account,
+						'debit': self.recovered_amount,
+						'against_voucher_type': 'Loan',
+						'against_voucher': self.loan,
+					}),
+				)
+			gl_entries.append(
+				self.get_gl_dict({
+						'account': self.payment_account,
+						'debit': self.recovered_amount,
+						'against': self.customer,
+						'against_voucher_type': 'Loan',
+						'against_voucher': self.loan,
+					}),
+				)
+			gl_entries.append(
+				self.get_gl_dict({
+						'account': temp_account,
+						'credit': self.recovered_amount,
+						'against_voucher_type': 'Loan',
+						'against_voucher': self.loan,
+					}),
+				)
 		return gl_entries
 
 	def add_loan_charges_entries(self):
