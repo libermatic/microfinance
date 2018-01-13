@@ -8,6 +8,7 @@ from frappe import _
 from frappe.utils import flt
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
+from frappe.utils.data import fmt_money
 
 from microfinance.microfinance_loan.doctype.loan.loan \
 	import get_outstanding_principal, get_billing_period
@@ -61,10 +62,11 @@ class Recovery(AccountsController):
 					})
 			)
 	def add_loan_gl_entries(self, gl_entries):
+		capital = self.amount - self.interest
 		gl_entries.append(
 				self.get_gl_dict({
 						'account': self.loan_account,
-						'credit': self.amount - self.interest,
+						'credit': capital,
 						'against_voucher_type': 'Loan',
 						'against_voucher': self.loan
 					})
@@ -75,16 +77,25 @@ class Recovery(AccountsController):
 						'credit': self.interest,
 						'cost_center': frappe.db.get_value('Loan Settings', None, 'cost_center'),
 						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan
+						'against_voucher': self.loan,
+						'remarks': 'Interest for period: {}'.format(self.billing_period)
 					})
 			)
+		remarks = 'Payment received'
+		if capital:
+			remarks += '. Capital: {}'.format(fmt_money(
+					capital,
+					precision=0,
+					currency=frappe.defaults.get_user_default('currency')
+				))
 		gl_entries.append(
 				self.get_gl_dict({
 						'account': self.payment_account,
 						'debit': self.amount,
 						'against': self.customer,
 						'against_voucher_type': 'Loan',
-						'against_voucher': self.loan
+						'against_voucher': self.loan,
+						'remarks': remarks
 					})
 			)
 	def add_charges_gl_entries(self):

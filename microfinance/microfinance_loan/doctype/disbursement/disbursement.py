@@ -34,6 +34,13 @@ class Disbursement(AccountsController):
 			make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
 
 	def add_loan_gl_entries(self):
+		remarks = 'Loan disbursed'
+		if self.recovered_partially:
+			remarks = 'Opening for original {}'.format(fmt_money(
+					self.amount,
+					precision=0,
+					currency=frappe.defaults.get_user_default('currency')
+				))
 		gl_entries = [
 			self.get_gl_dict({
 					'account': self.loan_account,
@@ -46,7 +53,8 @@ class Disbursement(AccountsController):
 					'credit': self.amount,
 					'against': self.customer,
 					'against_voucher_type': 'Loan',
-					'against_voucher': self.loan
+					'against_voucher': self.loan,
+					'remarks': remarks
 				})
 		]
 		return gl_entries
