@@ -52,9 +52,8 @@
     {% for (var i = 1; i < data.length - 2; i++ ) { %}
     <tr>
       <td>{{ dateutil.str_to_user(data[i][__("Posting Date")]) }}</td>
-      <td>{{ data[i][__("Details")] }}</td>
-      {% var amount = data[i][__("Credit")] - data[i][__("Debit")] %}
-      <td class="text-right">{{ format_currency(amount)  }}</td>
+      <td>{{ data[i][__("Remarks")] || (data[i][__("Amount")] > 0 ? 'Debit' : 'Credit') }}</td>
+      <td class="text-right">{{ format_currency(data[i][__("Amount")])  }}</td>
     </tr>
     {% } %}
   </tbody>
