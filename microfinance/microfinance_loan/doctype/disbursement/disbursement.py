@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 from frappe.utils.data import fmt_money
 
@@ -16,70 +17,66 @@ class Disbursement(AccountsController):
 			frappe.throw(_("Disbursed amount cannot exceed the sanctioned amount"))
 		if self.recovered_amount >= self.amount:
 			frappe.throw(_("Recovered amount cannot be equal to or exceed the disbursed amount"))
+
 	def on_submit(self):
-		self.journal_entry = self.make_jv_entry()
-		self.save()
+		self.make_gl_entries()
 		self.update_loan_status()
 
 	def on_cancel(self):
-		je = frappe.get_doc('Journal Entry', self.journal_entry)
-		je.cancel()
+		self.make_gl_entries(cancel=True)
 		self.update_loan_status()
 
-	def make_jv_entry(self):
-		self.check_permission('write')
-		je = frappe.new_doc('Journal Entry')
-		je.title = self.customer
-		if self.mode_of_payment == 'Cash':
-			je.voucher_type = 'Cash Entry'
-		elif self.mode_of_payment in ['Cheque', 'Bank Draft', 'Wire Transfer']:
-			je.voucher_type = 'Bank Entry'
-			je.cheque_no = self.cheque_no
-			je.cheque_date = self.cheque_date
-		elif self.mode_of_payment == 'Credit Card':
-			je.voucher_type = 'Credit Card Entry'
-		else:
-			je.voucher_type = 'Journal Entry'
-		je.user_remark = _('Against Loan: {0}. Disbursement Doc: {1}').format(self.loan, self.name)
-		je.company = self.company
-		je.posting_date = self.posting_date
-		account_amt_list = []
-		amount = self.amount
-		transaction_details = 'Disbursement'
-		if self.recovered_partially:
-			amount -= self.recovered_amount
-			transaction_details = 'Opening for original {}'.format(fmt_money(
-					self.amount,
-					precision=0,
-					currency=frappe.defaults.get_user_default('currency')
-				))
-		account_amt_list.append({
-				'account': self.payment_account,
-				'credit_in_account_currency': amount,
-				'reference_type': 'Loan',
-				'reference_name': self.loan,
-				'transaction_details': transaction_details
-			})
-		account_amt_list.append({
-				'account': self.loan_account,
-				'debit_in_account_currency': amount,
-				'reference_type': 'Loan',
-				'reference_name': self.loan,
-			})
-		if self.loan_charges:
-			for row in self.loan_charges:
-				account_amt_list[0]['credit_in_account_currency'] -= row.charge_amount
-				account_amt_list.append({
-						'account': row.charge_account,
-						'credit_in_account_currency': row.charge_amount,
-						'reference_type': 'Loan',
-						'reference_name': self.loan,
-						'transaction_details': row.charge
+	def make_gl_entries(self, cancel=0, adv_adj=0):
+		gl_entries = self.add_loan_gl_entries()
+		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
+		if len(self.loan_charges) > 0:
+			gl_entries = self.add_loan_charges_entries()
+			make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
+
+	def add_loan_gl_entries(self):
+		gl_entries = [
+			self.get_gl_dict({
+					'account': self.loan_account,
+					'debit': self.amount,
+					'against_voucher_type': 'Loan',
+					'against_voucher': self.loan
+				}),
+			self.get_gl_dict({
+					'account': self.payment_account,
+					'credit': self.amount,
+					'against': self.customer,
+					'against_voucher_type': 'Loan',
+					'against_voucher': self.loan
+				})
+		]
+		return gl_entries
+
+	def add_loan_charges_entries(self):
+		gl_entries = []
+		total = 0
+		cost_center = frappe.db.get_value('Loan Settings', None, 'cost_center')
+		for row in self.loan_charges:
+			total += row.charge_amount
+			gl_entries.append(
+					self.get_gl_dict({
+							'account': row.charge_account,
+							'credit': row.charge_amount,
+							'cost_center': cost_center,
+							'against_voucher_type': 'Loan',
+							'against_voucher': self.loan,
+							'remarks': row.charge
+						})
+				)
+		gl_entries.append(
+				self.get_gl_dict({
+						'account': self.payment_account,
+						'debit': total,
+						'against': self.customer,
+						'against_voucher_type': 'Loan',
+						'against_voucher': self.loan
 					})
-		je.set("accounts", account_amt_list)
-		je.insert()
-		je.submit()
-		return je.name
+			)
+		return gl_entries
 
 	def update_loan_status(self):
 		'''Method to update disbursement_status of Loan'''
