@@ -29,7 +29,8 @@ app_include_css = "assets/microfinance/css/devel.css"
 # include js in doctype views
 doctype_js = {
         'Loan Plan' : ["public/js/utils.js"],
-        'Loan' : ["public/js/utils.js"]
+        'Loan' : ["public/js/utils.js"],
+        'Recovery' : ["public/js/utils.js"],
     }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}

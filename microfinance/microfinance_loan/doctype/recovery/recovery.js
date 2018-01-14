@@ -142,6 +142,18 @@ frappe.ui.form.on('Recovery', {
       this.loading.remove('amount');
     }
   },
+  select_interval: function(frm) {
+    if (frm.doc['loan']) {
+      const dialog = new microfinance.utils.BillingPeriodDialog({
+        frm,
+        on_select: ({ period, interest }) => {
+          frm.set_value('billing_period', period);
+          frm.set_value('interest', interest);
+        },
+      });
+      dialog.show();
+    }
+  },
   mode_of_payment: async function(frm) {
     try {
       this.loading.append('account');
