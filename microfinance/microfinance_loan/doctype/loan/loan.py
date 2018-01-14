@@ -125,6 +125,19 @@ def get_billing_period(loan=None, interval_date=today()):
 	return start_date, end_date
 
 @frappe.whitelist()
+def get_billing_periods(loan=None, interval_date=today()):
+	periods = [
+			{ 'start_date': '2017-08-01', 'end_date': '2017-08-31', 'interest': 0 },
+			{ 'start_date': '2017-09-01', 'end_date': '2017-09-30', 'interest': 0 },
+			{ 'start_date': '2017-08-12', 'end_date': '2017-09-11', 'interest': 0 },
+			{ 'start_date': '2017-09-12', 'end_date': '2017-10-11', 'interest': 0 },
+			{ 'start_date': '2017-10-12', 'end_date': '2017-11-11', 'interest': 300 },
+			{ 'start_date': '2017-11-12', 'end_date': '2017-12-11', 'interest': 500 },
+			{ 'start_date': '2017-12-12', 'end_date': '2018-01-11', 'interest': 600 },
+		]
+	return periods
+
+@frappe.whitelist()
 def get_interest_amount(loan=None, start_date=today(), end_date=today()):
 	'''Get interest amount'''
 	if not loan:
