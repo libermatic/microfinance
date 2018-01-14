@@ -1,0 +1,10 @@
+.microf-dialog-actions {
+  display: flex;
+}
+.microf-dialog-actions button {
+  margin-right: 12px;
+}
+.microf-dialog-actions button:last-of-type {
+  margin-left: auto;
+  margin-right: 0;
+}
