@@ -68,7 +68,10 @@ class BillingPeriodDialog extends frappe.ui.Dialog {
         date: frappe.datetime.add_months(this.state.date, 5),
       });
     });
-    const none = $('<button class="btn btn-danger">None</button>');
+    const none = $('<button class="btn btn-danger">None</button>').click(() => {
+      this.props.on_select({});
+      this.hide();
+    });
     container
       .append(
         $('<div class="btn-group" />')
