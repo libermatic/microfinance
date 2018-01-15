@@ -5,13 +5,14 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils import flt
-from frappe.utils.data import getdate, today
+from frappe.utils.data import getdate, today, date_diff
 from frappe.model.document import Document
 from frappe.contacts.doctype.address.address import get_default_address
 import math
 from datetime import date
 
-from microfinance.microfinance_loan.doctype.loan.loan_utils import get_interval
+from microfinance.microfinance_loan.doctype.loan.loan_utils \
+	import get_interval, get_periods
 
 class Loan(Document):
 	def before_submit(self):
@@ -106,17 +107,71 @@ def get_billing_period(loan=None, interval_date=today()):
 	start_date, end_date = get_interval(day_of_month=billing_day, date_obj=interval_date)
 	return start_date, end_date
 
-@frappe.whitelist()
-def get_billing_periods(loan=None, interval_date=today()):
-	periods = [
-			{ 'start_date': '2017-08-01', 'end_date': '2017-08-31', 'interest': 0 },
-			{ 'start_date': '2017-09-01', 'end_date': '2017-09-30', 'interest': 0 },
-			{ 'start_date': '2017-08-12', 'end_date': '2017-09-11', 'interest': 0 },
-			{ 'start_date': '2017-09-12', 'end_date': '2017-10-11', 'interest': 0 },
-			{ 'start_date': '2017-10-12', 'end_date': '2017-11-11', 'interest': 300 },
-			{ 'start_date': '2017-11-12', 'end_date': '2017-12-11', 'interest': 500 },
-			{ 'start_date': '2017-12-12', 'end_date': '2018-01-11', 'interest': 600 },
+def get_interest(loan=None, start_date=today(), end_date=today()):
+	'''Get interest amount'''
+	if not loan:
+		return None
+	period = '{} - {}'.format(start_date, end_date)
+	interest_receivable_account = frappe.get_value(
+			'Loan',
+			loan,
+			'interest_receivable_account'
+		)
+	conds = [
+			"account = '{}'".format(interest_receivable_account),
+			"against = '{}'".format(period),
+			"against_voucher_type = 'Loan'",
+			"against_voucher = '{}'".format(loan)
 		]
+
+	owed, paid = frappe.db.sql("""
+			SELECT
+				sum(debit) as owed,
+				sum(credit) as paid
+			FROM `tabGL Entry`
+			WHERE {}
+		""".format(" AND ".join(conds)))[0]
+
+	owed, paid = flt(owed), flt(paid)
+	if owed > 0:
+		return owed - paid
+
+	principal = get_outstanding_principal(loan, end_date)
+	rate, slab = frappe.get_value('Loan', loan, ['rate_of_interest', 'calculation_slab'])
+	if slab:
+		principal = math.ceil(principal / slab) * slab
+	return principal * rate / 100.0
+
+@frappe.whitelist()
+def get_billing_periods(loan=None, interval_date=today(), no_of_periods=5):
+	'''Returns start and end date of a period along with interest of the period'''
+	billing_date, posting_date = frappe.get_value(
+			'Loan',
+			loan,
+			['billing_date', 'posting_date']
+		)
+	intervals = get_periods(billing_date.day, interval_date, no_of_periods)
+	
+	def check_for_posting_date_and_get_interest(interval):
+		if date_diff(interval.get('start_date'), posting_date) < 0:
+			interval.update({ 'start_date': posting_date })
+		interval.update({
+				'interest': get_interest(
+						loan,
+						interval.get('start_date'),
+						interval.get('end_date')
+					)
+			})
+		return interval
+
+	periods = map(
+			check_for_posting_date_and_get_interest,
+			filter(
+					lambda x: date_diff(x.get('end_date'), billing_date) > 0,
+					intervals
+				)
+		)
+
 	return periods
 
 @frappe.whitelist()

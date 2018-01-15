@@ -35,19 +35,18 @@ async function set_billing_date(frm) {
   if (posting_date && loan_plan) {
     const { message = {} } = await frappe.db.get_value('Loan Plan', loan_plan, [
       'recovery_frequency',
-      'day',
       'billing_day',
     ]);
-    const { recovery_frequency, day, billing_day } = message;
-    frm.set_value('day', null);
-    frm.set_value('billing_date', null);
-    if (recovery_frequency === 'Weekly') {
-      frm.set_value('day', day);
-    } else if (recovery_frequency === 'Monthly') {
-      const bd = moment(billing_day).date();
-      const billing_date = moment(posting_date).date(bd);
-      frm.set_value('billing_date', billing_date);
+    const { recovery_frequency, billing_day } = message;
+    let billing_date = moment(posting_date).date(billing_day);
+    if (billing_date.isBefore(posting_date)) {
+      if (recovery_frequency === 'Weekly') {
+        billing_date.add('day', 7);
+      } else if (recovery_frequency === 'Monthly') {
+        billing_date.add('month', 1);
+      }
     }
+    frm.set_value('billing_date', billing_date);
   }
 }
 
