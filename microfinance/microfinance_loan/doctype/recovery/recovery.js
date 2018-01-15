@@ -93,9 +93,6 @@ frappe.ui.form.on('Recovery', {
         this.loading.remove('settings');
       }
     }
-    if (frm.doc.docstatus == 0) {
-      frm.set_value('journal_entry', null);
-    }
     toggle_cheque_fields(frm);
   },
   loan: async function(frm) {
