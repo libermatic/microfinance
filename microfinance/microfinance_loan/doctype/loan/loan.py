@@ -5,11 +5,13 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils import flt
-from frappe.utils.data import getdate, today, add_months, add_days, date_diff, get_last_day
+from frappe.utils.data import getdate, today
 from frappe.model.document import Document
 from frappe.contacts.doctype.address.address import get_default_address
 import math
 from datetime import date
+
+from microfinance.microfinance_loan.doctype.loan.loan_utils import get_interval
 
 class Loan(Document):
 	def before_submit(self):
@@ -91,26 +93,6 @@ def get_recovered_principal(loan):
 			WHERE voucher_type = 'Disbursement' AND {}
 		""".format(" AND ".join(conds)))[0][0] or 0
 	return recovered + unrecorded
-
-def get_interval(day_of_month, date_obj):
-	'''Returns start and end date of the interval'''
-	if not isinstance(date_obj, date):
-		date_obj = getdate(date_obj)
-	try:
-		start_date = date_obj.replace(day=day_of_month)
-	except ValueError:
-		start_date = add_months(date_obj, -1).replace(day=day_of_month)
-	if date_diff(date_obj, start_date) < 0:
-		start_date = add_months(start_date, -1)
-	try:
-		end_date = date_obj.replace(day=day_of_month)
-	except ValueError:
-		end_date = get_last_day(date_obj)
-	if date_diff(end_date, date_obj) <= 0:
-		end_date = add_months(end_date, 1)
-	if end_date.day >= day_of_month:
-		end_date = add_days(end_date, -1)
-	return start_date, end_date
 
 @frappe.whitelist()
 def get_billing_period(loan=None, interval_date=today()):
