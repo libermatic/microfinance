@@ -49,21 +49,7 @@ async function get_amount_and_period(frm) {
   frm.set_value('billing_period', period.join(' - '));
 }
 
-class LoadingHandler {
-  constructor() {
-    this.entities = [];
-  }
-  append(item) {
-    this.entities.push(item);
-  }
-  remove(item) {
-    const idx = this.entities.findIndex(x => x === item);
-    if (idx > -1) {
-      this.entities.splice(idx, 1);
     }
-  }
-  is_awaiting() {
-    return this.entities.length !== 0;
   }
 }
 
@@ -88,7 +74,7 @@ frappe.ui.form.on('Recovery', {
     });
   },
   onload: async function(frm) {
-    this.loading = new LoadingHandler();
+    this.loading = new microfinance.utils.LoadingHandler();
     if (frm.doc.__islocal) {
       try {
         this.loading.append('settings');
