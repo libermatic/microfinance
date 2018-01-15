@@ -2,10 +2,15 @@
 // For license information, please see license.txt
 
 function calculate_total(frm) {
-  const { amount = 0, loan_charges = [] } = frm.doc;
+  const { amount = 0, recovered_amount = 0 } = frm.doc;
+  frm.set_value('total', amount - recovered_amount);
+}
+
+function calculate_extra_charges(frm) {
+  const { loan_charges = [] } = frm.doc;
   frm.set_value(
-    'total',
-    amount - loan_charges.reduce((a, { charge_amount: x = 0 }) => a + x, 0)
+    'extra_charges',
+    loan_charges.reduce((a, { charge_amount: x = 0 }) => a + x, 0)
   );
 }
 
@@ -34,8 +39,8 @@ frappe.ui.form.on('Disbursement', {
       filters: { docstatus: 1 },
     });
     frappe.ui.form.on('Other Loan Charge', {
-      charge_amount: calculate_total,
-      loan_charges_remove: calculate_total,
+      charge_amount: calculate_extra_charges,
+      loan_charges_remove: calculate_extra_charges,
     });
     if (frm.doc.docstatus > 0 && !frm.doc['recovered_partially']) {
       frm.set_df_property('recovered_partially', 'hidden', 1);
@@ -70,6 +75,7 @@ frappe.ui.form.on('Disbursement', {
     frm.set_value('amount', amount);
   },
   amount: calculate_total,
+  recovered_amount: calculate_total,
   recovered_partially: function(frm) {
     if (!frm.doc['recovered_partially']) {
       frm.set_value('recovered_amount', null);
@@ -89,5 +95,8 @@ frappe.ui.form.on('Disbursement', {
     }
   },
   payment_account: toggle_cheque_fields,
-  onsubmit: calculate_total,
+  onsubmit: function(frm) {
+    calculate_total(frm);
+    calculate_extra_charges(frm);
+  },
 });

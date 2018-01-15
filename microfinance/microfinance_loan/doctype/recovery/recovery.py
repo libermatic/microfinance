@@ -55,6 +55,7 @@ class Recovery(AccountsController):
 						'debit': self.interest,
 						'party_type': 'Customer',
 						'party': self.customer,
+						'against': self.billing_period,
 					})
 			)
 		gl_entries.append(
@@ -63,6 +64,7 @@ class Recovery(AccountsController):
 						'credit': self.interest,
 						'party_type': 'Customer',
 						'party': self.customer,
+						'against': self.billing_period,
 					})
 			)
 	def add_loan_gl_entries(self, gl_entries):
