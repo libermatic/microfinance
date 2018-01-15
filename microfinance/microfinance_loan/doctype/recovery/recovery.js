@@ -28,28 +28,30 @@ async function toggle_cheque_fields(frm) {
 }
 
 async function get_amount_and_period(frm) {
-  const { loan, interval_date } = frm.doc;
-  const [{ message = {} }, { message: period = [] }] = await Promise.all([
-    frappe.db.get_value('Loan', loan, 'stipulated_recovery_amount'),
-    frappe.call({
-      method:
-        'microfinance.microfinance_loan.doctype.loan.loan.get_billing_period',
-      args: { loan, interval_date },
-    }),
-  ]);
-  const { stipulated_recovery_amount = 0 } = message;
-  const [start_date, end_date] = period;
-  const { message: interest_amount } = await frappe.call({
-    method:
-      'microfinance.microfinance_loan.doctype.loan.loan.get_interest_amount',
-    args: { loan, start_date, end_date },
-  });
-  frm.set_value('interest', interest_amount);
-  frm.set_value('principal', stipulated_recovery_amount);
-  frm.set_value('billing_period', period.join(' - '));
-}
+  const { loan, posting_date } = frm.doc;
+  if (loan && posting_date) {
+    const [{ message = {} }, { message: periods = [] }] = await Promise.all([
+      frappe.db.get_value('Loan', loan, 'stipulated_recovery_amount'),
+      frappe.call({
+        method:
+          'microfinance.microfinance_loan.doctype.loan.loan.get_billing_periods',
+        args: { loan, interval_date: posting_date, no_of_periods: 1 },
+      }),
+    ]);
 
+    const { stipulated_recovery_amount = 0 } = message;
+    frm.set_value('principal', stipulated_recovery_amount);
+
+    let interval = {};
+    if (periods.length === 1) {
+      interval = periods[0];
     }
+    const { start_date, end_date, interest } = interval;
+    frm.set_value('billing_period', `${start_date} - ${end_date}`);
+    frm.set_value('interest', interest);
+  } else {
+    frm.set_value('billing_period', null);
+    frm.set_value('interest', null);
   }
 }
 
@@ -109,22 +111,18 @@ frappe.ui.form.on('Recovery', {
       this.loading.remove('amount');
     }
   },
-  posting_date: function(frm) {
-    frm.set_value('interval_date', frm.doc['posting_date']);
+  posting_date: async function(frm) {
+    try {
+      this.loading.append('period');
+      await get_amount_and_period(frm);
+    } catch (e) {
+    } finally {
+      this.loading.remove('period');
+    }
   },
   principal: calculate_amount,
   interest: calculate_amount,
   amount: calculate_total,
-  interval_date: async function(frm) {
-    try {
-      this.loading.append('amount');
-      await get_amount_and_period(frm);
-    } catch (e) {
-      frappe.throw(e.toString());
-    } finally {
-      this.loading.remove('amount');
-    }
-  },
   select_interval: function(frm) {
     if (frm.doc['loan']) {
       const dialog = new microfinance.utils.BillingPeriodDialog({
