@@ -95,18 +95,6 @@ def get_recovered_principal(loan):
 		""".format(" AND ".join(conds)))[0][0] or 0
 	return recovered + unrecorded
 
-@frappe.whitelist()
-def get_billing_period(loan=None, interval_date=today()):
-	'''Returns start and end date of a period'''
-	if not loan:
-		return None
-	if not isinstance(interval_date, date):
-		interval_date = getdate(interval_date)
-	billing_date = frappe.get_value('Loan', loan, 'billing_date')
-	billing_day = billing_date.day if billing_date else 1
-	start_date, end_date = get_interval(day_of_month=billing_day, date_obj=interval_date)
-	return start_date, end_date
-
 def get_interest(loan=None, start_date=today(), end_date=today()):
 	'''Get interest amount'''
 	if not loan:
@@ -150,8 +138,10 @@ def get_billing_periods(loan=None, interval_date=today(), no_of_periods=5):
 			loan,
 			['billing_date', 'posting_date']
 		)
+	if date_diff(interval_date, posting_date) < 0:
+		frappe.throw('Cannot get interest for period before the loan was submitted')
 	intervals = get_periods(billing_date.day, interval_date, no_of_periods)
-	
+
 	def check_for_posting_date_and_get_interest(interval):
 		if date_diff(interval.get('start_date'), posting_date) < 0:
 			interval.update({ 'start_date': posting_date })
@@ -167,7 +157,7 @@ def get_billing_periods(loan=None, interval_date=today(), no_of_periods=5):
 	periods = map(
 			check_for_posting_date_and_get_interest,
 			filter(
-					lambda x: date_diff(x.get('end_date'), billing_date) > 0,
+					lambda x: date_diff(x.get('end_date'), posting_date) > 0,
 					intervals
 				)
 		)
