@@ -8,6 +8,8 @@ microfinance.utils.check_billing_vs_due_date = function(billing_day, due_day) {
   );
 };
 
+const NO_OF_PERIODS = 5;
+
 class BillingPeriodDialog extends frappe.ui.Dialog {
   constructor(props) {
     super({
@@ -53,7 +55,7 @@ class BillingPeriodDialog extends frappe.ui.Dialog {
       '<button class="btn btn-info"><i class="octicon octicon-chevron-left"/> Previous</button>'
     ).click(() => {
       this.update_state({
-        date: frappe.datetime.add_months(this.state.date, -5),
+        date: frappe.datetime.add_months(this.state.date, -NO_OF_PERIODS),
       });
     });
     const current = $('<button class="btn btn-info">Current</button>').click(
@@ -65,7 +67,7 @@ class BillingPeriodDialog extends frappe.ui.Dialog {
       '<button class="btn btn-info">Next <i class="octicon octicon-chevron-right"/></button>'
     ).click(() => {
       this.update_state({
-        date: frappe.datetime.add_months(this.state.date, 5),
+        date: frappe.datetime.add_months(this.state.date, NO_OF_PERIODS),
       });
     });
     const none = $('<button class="btn btn-danger">None</button>').click(() => {
@@ -89,7 +91,7 @@ class BillingPeriodDialog extends frappe.ui.Dialog {
       const { message: periods } = await frappe.call({
         method:
           'microfinance.microfinance_loan.doctype.loan.loan.get_billing_periods',
-        args: { loan, interval_date: date },
+        args: { loan, interval_date: date, no_of_periods: NO_OF_PERIODS },
       });
       this.update_state({ periods });
     } catch (e) {
@@ -99,12 +101,16 @@ class BillingPeriodDialog extends frappe.ui.Dialog {
     }
   }
   async render_table() {
-    const { loading, periods } = this.state;
+    const { loading, periods = [] } = this.state;
     if (loading) {
-      const loading_indicator = $('<div />')
+      return $('<div />')
         .addClass('microf-dialog-loading')
         .text('Loading');
-      return loading_indicator;
+    }
+    if (periods.length === 0) {
+      return $('<div />')
+        .addClass('microf-dialog-loading')
+        .text('No more periods');
     }
     const container = $('<table />').addClass(
       'table table-condensed table-striped table-hover'
@@ -114,38 +120,36 @@ class BillingPeriodDialog extends frappe.ui.Dialog {
         .append($('<th scope="col" />').text('Period'))
         .append($('<th scope="col" class="text-right" />').text('Interest'))
     );
-    if (periods) {
-      periods.forEach(({ start_date, end_date, interest }) => {
-        container.append(
-          $('<tr style="cursor: pointer;" />')
-            .append(
-              $('<td />').text(
-                `${frappe.datetime.str_to_user(
-                  start_date
-                )} - ${frappe.datetime.str_to_user(end_date)} (${moment(
-                  start_date
-                ).format('MMM, YYYY')})`
-              )
+    periods.forEach(({ start_date, end_date, interest }) => {
+      container.append(
+        $('<tr style="cursor: pointer;" />')
+          .append(
+            $('<td />').text(
+              `${frappe.datetime.str_to_user(
+                start_date
+              )} - ${frappe.datetime.str_to_user(end_date)} (${moment(
+                start_date
+              ).format('MMM, YYYY')})`
             )
-            .append(
-              $('<td class="text-right" />').text(
-                format_currency(
-                  interest,
-                  frappe.defaults.get_default('currency'),
-                  2
-                )
-              )
-            )
-            .click(() => {
-              this.props.on_select({
-                period: `${start_date} - ${end_date}`,
+          )
+          .append(
+            $('<td class="text-right" />').text(
+              format_currency(
                 interest,
-              });
-              this.hide();
-            })
-        );
-      });
-    }
+                frappe.defaults.get_default('currency'),
+                2
+              )
+            )
+          )
+          .click(() => {
+            this.props.on_select({
+              period: `${start_date} - ${end_date}`,
+              interest,
+            });
+            this.hide();
+          })
+      );
+    });
     return container;
   }
 }

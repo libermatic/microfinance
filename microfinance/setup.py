@@ -51,32 +51,3 @@ def after_wizard_complete(args=None):
 			)
 		loan_settings.update({ key: account_name })
 	loan_settings.save()
-
-def _set_fixtures():
-	options = frappe.get_meta('Journal Entry Account').get_field('reference_type').options
-    # for property setter
-	if not '\nLoan' in options:
-		doc = frappe.new_doc('Property Setter')
-		value = options + '\nLoan'
-		doc.update({
-				'doc_type': 'Journal Entry Account',
-				'doctype_or_field': 'DocField',
-				'field_name' :'reference_type',
-				'property': 'options',
-				'property_type': 'Text',
-				'value': value
-			})
-		doc.insert(ignore_permissions=True)
-
-    # for custom field
-	frappe.get_doc({
-			'doctype': 'Custom Field',
-			'dt': 'Journal Entry Account',
-			'label': 'Transaction Details',
-			'fieldname': 'transaction_details',
-			'insert_after': 'against_account',
-			'fieldtype': 'Text',
-		}).insert(ignore_if_duplicate=True)
-
-def after_install(args=None):
-	_set_fixtures()
