@@ -138,8 +138,6 @@ def get_billing_periods(loan=None, interval_date=today(), no_of_periods=5):
 			loan,
 			['billing_date', 'posting_date']
 		)
-	if date_diff(interval_date, posting_date) < 0:
-		frappe.throw('Cannot get interest for period before the loan was submitted')
 	intervals = get_periods(billing_date.day, interval_date, no_of_periods)
 
 	def check_for_posting_date_and_get_interest(interval):

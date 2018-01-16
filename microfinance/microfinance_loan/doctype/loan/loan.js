@@ -41,9 +41,9 @@ async function set_billing_date(frm) {
     let billing_date = moment(posting_date).date(billing_day);
     if (billing_date.isBefore(posting_date)) {
       if (recovery_frequency === 'Weekly') {
-        billing_date.add('day', 7);
+        billing_date.add(7, 'days');
       } else if (recovery_frequency === 'Monthly') {
-        billing_date.add('month', 1);
+        billing_date.add(1, 'months');
       }
     }
     frm.set_value('billing_date', billing_date);
