@@ -7,7 +7,7 @@ from datetime import date
 import frappe
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils.data import getdate, today
+from frappe.utils.data import getdate, today, date_diff, add_days, add_months
 
 class LoanApplication(Document):
 	def before_submit(self):
@@ -33,33 +33,33 @@ def approve(name, loan_no=None):
 		loan.update_from_application(loan_application)
 	else:
 		def postproc(source, target):
-			interest_income_account, loan_account = frappe.get_value(
+			interest_income_account, interest_receivable_account, loan_account = frappe.get_value(
 					'Loan Settings',
 					None,
-					['interest_income_account', 'loan_account']
+					['interest_income_account', 'interest_receivable_account', 'loan_account']
 				)
 			target.update({
 					'loan_no': loan_no,
 					'posting_date': today(),
 					'loan_principal': source.amount,
 					'loan_account': loan_account,
-					'interest_income_account': interest_income_account
+					'interest_income_account': interest_income_account,
+					'interest_receivable_account': interest_receivable_account,
 				})
 			recovery_frequency, day, billing_day = frappe.get_value(
 					'Loan Plan',
 					loan_application.loan_plan,
 					['recovery_frequency', 'day', 'billing_day']
 				)
-			if recovery_frequency == 'Weekly':
-				target.update({
-						'day': day
-					})
-			elif recovery_frequency == 'Monthly':
-				bd = getdate(billing_day).day
-				billing_date = getdate(target.posting_date).replace(day=bd)
-				target.update({
-						'billing_date': billing_date
-					})
+			billing_date = getdate(target.posting_date).replace(day=billing_day)
+			if date_diff(billing_date, target.posting_date) < 0:
+				if recovery_frequency == 'Weekly':
+					add_days(billing_date, 7)
+				elif recovery_frequency == 'Monthly':
+					add_months(billing_date, 1)
+			target.update({
+					'billing_date': billing_date
+				})
 		fields = get_mapped_doc('Loan Application', name, {
 				'Loan Application': {
 						'doctype': 'Loan',
