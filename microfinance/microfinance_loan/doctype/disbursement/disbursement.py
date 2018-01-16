@@ -36,7 +36,7 @@ class Disbursement(AccountsController):
 	def get_gl_dict(self, args):
 		gl_dict = frappe._dict({
 				'against_voucher_type': 'Loan',
-				'against_voucher': self.loan
+				'against_voucher': self.loan,
 			})
 		gl_dict.update(args)
 		return super(Disbursement, self).get_gl_dict(gl_dict)
@@ -58,7 +58,7 @@ class Disbursement(AccountsController):
 						'account': self.payment_account,
 						'credit': self.amount,
 						'against': self.customer,
-						'remarks': remarks
+						'remarks': remarks,
 					})
 			]
 		if self.recovered_partially:
@@ -104,7 +104,7 @@ class Disbursement(AccountsController):
 							'account': row.charge_account,
 							'credit': row.charge_amount,
 							'cost_center': cost_center,
-							'remarks': row.charge
+							'remarks': row.charge,
 						})
 				)
 		gl_entries.append(
@@ -112,6 +112,7 @@ class Disbursement(AccountsController):
 						'account': self.payment_account,
 						'debit': total,
 						'against': self.customer,
+						'remarks': 'Payment received. Charges.',
 					})
 			)
 		return gl_entries
