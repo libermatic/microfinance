@@ -366,7 +366,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2018-01-15 23:04:25.985567", 
+ "modified": "2018-01-16 22:49:14.295099", 
  "modified_by": "Administrator", 
  "module": "Microfinance Loan", 
  "name": "Loan Plan", 
@@ -420,6 +420,6 @@
  "show_name_in_global_search": 0, 
  "sort_field": "modified", 
  "sort_order": "DESC", 
- "track_changes": 0, 
+ "track_changes": 1, 
  "track_seen": 0
 }

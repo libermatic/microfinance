@@ -672,5 +672,5 @@
  "sort_order": "DESC", 
  "title_field": "customer", 
  "track_changes": 1, 
- "track_seen": 1
+ "track_seen": 0
 }
