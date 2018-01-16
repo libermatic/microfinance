@@ -10,8 +10,7 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 from frappe.utils.data import fmt_money
 
-from microfinance.microfinance_loan.doctype.loan.loan \
-	import get_outstanding_principal, get_billing_period
+from microfinance.microfinance_loan.doctype.loan.loan import get_outstanding_principal
 
 class Recovery(AccountsController):
 	def validate(self):
