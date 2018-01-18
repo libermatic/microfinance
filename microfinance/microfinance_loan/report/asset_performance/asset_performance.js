@@ -13,6 +13,12 @@ frappe.query_reports['Asset Performance'] = {
       reqd: 1,
     },
     {
+      fieldname: 'loan_plan',
+      label: __('Loan Plan'),
+      fieldtype: 'Link',
+      options: 'Loan Plan',
+    },
+    {
       fieldname: 'duration',
       label: __('Duration'),
       fieldtype: 'Select',

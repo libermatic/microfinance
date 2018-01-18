@@ -19,7 +19,7 @@ durations = {
 def execute(filters=None):
 	period_list = get_periods(today(), durations.get(filters.get('duration')) or 1)
 	columns = get_columns(period_list)
-	data = get_data(period_list, show_npas_only=filters.get('show_npas_only'))
+	data = get_data(period_list, filters=filters)
 	return columns, data
 
 def get_columns(period_list):
@@ -75,17 +75,22 @@ def get_periods(period_date, no_of_periods=3):
 			}))
 	return periods
 
-def get_data(period_list, show_npas_only=False):
+def get_data(period_list, filters=None):
+	show_npas_only = filters.get('show_npas_only')
+	loan_plan = filters.get('loan_plan')
+	loan_filters = {
+		'docstatus': 1,
+		'recovery_status': 'In Progress',
+	}
+	if loan_plan:
+		loan_filters.update({ 'loan_plan': loan_plan })
 	loans = frappe.get_list('Loan', [
 			'name',
 			'customer',
 			'billing_date',
 			'interest_receivable_account',
 			'loan_account',
-		], filters={
-			'docstatus': 1,
-			'recovery_status': 'In Progress',
-		})
+		], filters=loan_filters)
 	data = []
 	for loan in loans:
 		row = [loan.customer, loan.name, get_outstanding_principal(loan.name)]
@@ -95,14 +100,24 @@ def get_data(period_list, show_npas_only=False):
 					getdate(loan.billing_date).day,
 					period.start_date
 				)
+			conds = [
+					"against = '{}'".format(as_text),
+					"account = '{}'".format(loan.interest_receivable_account),
+					"against_voucher_type = 'Loan'",
+					"against_voucher = '{}'".format(loan.name),
+				]
 			owed = frappe.db.sql("""
-				SELECT sum(debit) FROM `tabGL Entry`
-				WHERE against = '{}' AND account = '{}' AND against_voucher_type = 'Loan' AND against_voucher = '{}'
-			""".format(as_text, loan.interest_receivable_account, loan.name))[0][0] or 0
+				SELECT sum(debit) FROM `tabGL Entry` WHERE {}
+			""".format(" AND ".join(conds)))[0][0] or 0
+			conds = [
+					"against = '{}'".format(as_text),
+					"account = '{}'".format(loan.interest_receivable_account),
+					"voucher_type = 'Loan'",
+					"voucher_no = '{}'".format(loan.name),
+				]
 			converted = frappe.db.sql("""
-				SELECT sum(credit) FROM `tabGL Entry`
-				WHERE against = '{}' AND account = '{}' AND voucher_type = 'Loan' AND voucher_no = '{}'
-			""".format(as_text, loan.loan_account, loan.name))[0][0] or 0
+				SELECT sum(credit) FROM `tabGL Entry` WHERE {}
+			""".format(" AND ".join(conds)))[0][0] or 0
 			amount = owed - converted
 			total += amount
 			row.append(amount)
