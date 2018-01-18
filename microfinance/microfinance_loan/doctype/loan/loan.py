@@ -31,68 +31,63 @@ class Loan(AccountsController):
 			self.disbursement_status = 'Partially Disbursed'
 		self.save()
 
-	def get_gl_dict(self, args):
-		gl_dict = frappe._dict({
-				'against_voucher_type': 'Loan',
-				'against_voucher': self.name
-			})
-		gl_dict.update(args)
-		return super(Loan, self).get_gl_dict(gl_dict)
-
 	def make_interest(self, posting_date, cancel=0, adv_adj=0):
 		periods = get_billing_periods(self.name, posting_date, 1)
 		if len(periods) != 1:
 			return None
 		amount = periods[0].get('interest')
-		billing_period = '{} - {}'.format(
-				periods[0].get('start_date'),
-				periods[0].get('end_date')
-			)
-		gl_entries = [
-			self.get_gl_dict({
-					'posting_date': posting_date,
-					'account': self.interest_receivable_account,
-					'debit': amount,
-					'party_type': 'Customer',
-					'party': self.customer,
-					'against': billing_period,
-				}),
-			self.get_gl_dict({
-					'posting_date': posting_date,
-					'account': self.interest_income_account,
-					'credit': amount,
-					'cost_center': frappe.db.get_value('Loan Settings', None, 'cost_center'),
-					'remarks': 'Interest for period: {}'.format(billing_period),
-				})
-		]
-		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
+		if amount:
+			billing_period = '{} - {}'.format(
+					periods[0].get('start_date'),
+					periods[0].get('end_date')
+				)
+			gl_entries = [
+				self.get_gl_dict({
+						'posting_date': posting_date,
+						'account': self.interest_receivable_account,
+						'debit': amount,
+						'party_type': 'Customer',
+						'party': self.customer,
+						'against': billing_period,
+					}),
+				self.get_gl_dict({
+						'posting_date': posting_date,
+						'account': self.interest_income_account,
+						'credit': amount,
+						'cost_center': frappe.db.get_value('Loan Settings', None, 'cost_center'),
+						'remarks': 'Interest for period: {}'.format(billing_period),
+					})
+			]
+			make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 
 	def convert_interest_to_principal(self, posting_date, cancel=0, adv_adj=0):
 		periods = get_billing_periods(self.name, add_days(posting_date, -1), 1)
 		if len(periods) != 1:
 			return None
 		amount = periods[0].get('interest')
-		billing_period = '{} - {}'.format(
-				periods[0].get('start_date'),
-				periods[0].get('end_date')
-			)
-		gl_entries = [
-			self.get_gl_dict({
-					'posting_date': posting_date,
-					'account': self.interest_receivable_account,
-					'credit': amount,
-					'party_type': 'Customer',
-					'party': self.customer,
-					'against': billing_period,
-				}),
-			self.get_gl_dict({
-					'posting_date': posting_date,
-					'account': self.loan_account,
-					'debit': amount,
-					'remarks': 'Converted to principal for: {}'.format(billing_period),
-				})
-		]
-		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
+		if amount:
+			billing_period = '{} - {}'.format(
+					periods[0].get('start_date'),
+					periods[0].get('end_date')
+				)
+			gl_entries = [
+				self.get_gl_dict({
+						'posting_date': posting_date,
+						'account': self.interest_receivable_account,
+						'credit': amount,
+						'party_type': 'Customer',
+						'party': self.customer,
+						'against': billing_period,
+					}),
+				self.get_gl_dict({
+						'posting_date': posting_date,
+						'account': self.loan_account,
+						'debit': amount,
+						'against': billing_period,
+						'remarks': 'Converted to principal for: {}'.format(billing_period),
+					})
+			]
+			make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 
 @frappe.whitelist()
 def get_undisbursed_principal(loan=None):
@@ -169,24 +164,28 @@ def get_interest(loan=None, start_date=today(), end_date=today()):
 			loan,
 			'interest_receivable_account'
 		)
+
+	against_conds = [
+			"against_voucher_type = 'Loan'",
+			"against_voucher = '{}'".format(loan),
+		]
+	voucher_conds = [
+			"voucher_type = 'Loan'",
+			"voucher_no = '{}'".format(loan),
+		]
 	conds = [
 			"account = '{}'".format(interest_receivable_account),
 			"against = '{}'".format(period),
-			"against_voucher_type = 'Loan'",
-			"against_voucher = '{}'".format(loan)
+			"(({}) OR ({}))".format(" AND ".join(against_conds), " AND ".join(voucher_conds)),
 		]
-	orconds = [
-		"voucher_type = 'Loan'",
-		"'voucher_no' = '{}'".format(loan)
-	]
 
 	owed, paid = frappe.db.sql("""
 			SELECT
 				sum(debit) as owed,
 				sum(credit) as paid
 			FROM `tabGL Entry`
-			WHERE {} OR ({})
-		""".format(" AND ".join(conds), " AND ".join(orconds)))[0]
+			WHERE {}
+		""".format(" AND ".join(conds)))[0]
 
 	owed, paid = flt(owed), flt(paid)
 	if owed > 0:
@@ -229,27 +228,6 @@ def get_billing_periods(loan=None, interval_date=today(), no_of_periods=5):
 		)
 
 	return periods
-
-@frappe.whitelist()
-def get_interest_amount(loan=None, start_date=today(), end_date=today()):
-	'''Get interest amount'''
-	if not loan:
-		return None
-	paid_amount = frappe.db.sql("""
-			SELECT sum(interest)
-			FROM `tabRecovery`
-			WHERE docstatus = 1
-			AND loan = '{loan}'
-			AND billing_period = '{start_date} - {end_date}'
-		""".format(loan=loan, start_date=start_date, end_date=end_date))[0][0] or 0
-	principal = get_outstanding_principal(loan, end_date)
-	rate, slab = frappe.get_value('Loan', loan, ['rate_of_interest', 'calculation_slab'])
-	if slab:
-		principal = math.ceil(principal / slab) * slab
-	interest = principal * rate / 100.0 - paid_amount
-	if interest < 0:
-		return 0
-	return interest
 
 @frappe.whitelist()
 def get_customer_address(customer=None):
