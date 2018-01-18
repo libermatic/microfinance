@@ -41,9 +41,9 @@ class Loan(AccountsController):
 					periods[0].get('start_date'),
 					periods[0].get('end_date')
 				)
+			self.posting_date = posting_date
 			gl_entries = [
 				self.get_gl_dict({
-						'posting_date': posting_date,
 						'account': self.interest_receivable_account,
 						'debit': amount,
 						'party_type': 'Customer',
@@ -51,7 +51,6 @@ class Loan(AccountsController):
 						'against': billing_period,
 					}),
 				self.get_gl_dict({
-						'posting_date': posting_date,
 						'account': self.interest_income_account,
 						'credit': amount,
 						'cost_center': frappe.db.get_value('Loan Settings', None, 'cost_center'),
@@ -70,6 +69,7 @@ class Loan(AccountsController):
 					periods[0].get('start_date'),
 					periods[0].get('end_date')
 				)
+			self.posting_date = posting_date
 			gl_entries = [
 				self.get_gl_dict({
 						'posting_date': posting_date,
