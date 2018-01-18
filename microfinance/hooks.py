@@ -96,13 +96,13 @@ setup_wizard_complete = "microfinance.setup.after_wizard_complete"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
 # 	"all": [
 # 		"microfinance.tasks.all"
 # 	],
-# 	"daily": [
-# 		"microfinance.tasks.daily"
-# 	],
+	"daily": [
+		"microfinance.tasks.daily"
+	],
 # 	"hourly": [
 # 		"microfinance.tasks.hourly"
 # 	],
@@ -112,7 +112,7 @@ setup_wizard_complete = "microfinance.setup.after_wizard_complete"
 # 	"monthly": [
 # 		"microfinance.tasks.monthly"
 # 	]
-# }
+}
 
 # Testing
 # -------

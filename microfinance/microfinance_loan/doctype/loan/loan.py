@@ -6,15 +6,16 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import flt
 from frappe.utils.data import getdate, today, date_diff
-from frappe.model.document import Document
+from erpnext.controllers.accounts_controller import AccountsController
 from frappe.contacts.doctype.address.address import get_default_address
+from erpnext.accounts.general_ledger import make_gl_entries
 import math
 from datetime import date
 
 from microfinance.microfinance_loan.doctype.loan.loan_utils \
 	import get_interval, get_periods
 
-class Loan(Document):
+class Loan(AccountsController):
 	def before_submit(self):
 		self.disbursement_status = 'Sanctioned'
 		self.recovery_status = 'Not Started'
@@ -29,6 +30,45 @@ class Loan(Document):
 		if self.disbursement_status == 'Fully Disbursed':
 			self.disbursement_status = 'Partially Disbursed'
 		self.save()
+
+	def get_gl_dict(self, args):
+		gl_dict = frappe._dict({
+				'against_voucher_type': 'Loan',
+				'against_voucher': self.name
+			})
+		gl_dict.update(args)
+		return super(Loan, self).get_gl_dict(gl_dict)
+
+	def make_interest(self, posting_date, cancel=0, adv_adj=0):
+		periods = get_billing_periods(self.name, posting_date, 1)
+		if len(periods) != 1:
+			return None
+		amount = periods[0].get('interest')
+		billing_period = '{} - {}'.format(
+				periods[0].get('start_date'),
+				periods[0].get('end_date')
+			)
+		gl_entries = [
+			self.get_gl_dict({
+					'posting_date': posting_date,
+					'account': self.interest_receivable_account,
+					'debit': amount,
+					'party_type': 'Customer',
+					'party': self.customer,
+					'against': billing_period,
+				}),
+			self.get_gl_dict({
+					'posting_date': posting_date,
+					'account': self.interest_income_account,
+					'credit': amount,
+					'cost_center': frappe.db.get_value('Loan Settings', None, 'cost_center'),
+					'remarks': 'Interest for period: {}'.format(billing_period),
+				})
+		]
+		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
+
+	def convert_interest_to_principal(self):
+		pass
 
 @frappe.whitelist()
 def get_undisbursed_principal(loan=None):
@@ -111,14 +151,18 @@ def get_interest(loan=None, start_date=today(), end_date=today()):
 			"against_voucher_type = 'Loan'",
 			"against_voucher = '{}'".format(loan)
 		]
+	orconds = [
+		"voucher_type = 'Loan'",
+		"'voucher_no' = '{}'".format(loan)
+	]
 
 	owed, paid = frappe.db.sql("""
 			SELECT
 				sum(debit) as owed,
 				sum(credit) as paid
 			FROM `tabGL Entry`
-			WHERE {}
-		""".format(" AND ".join(conds)))[0]
+			WHERE {} OR ({})
+		""".format(" AND ".join(conds), " AND ".join(orconds)))[0]
 
 	owed, paid = flt(owed), flt(paid)
 	if owed > 0:
