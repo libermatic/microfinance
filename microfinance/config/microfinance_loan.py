@@ -55,6 +55,12 @@ def get_data():
 					"name": "Asset Performance",
 					"doctype": "Asset Performance",
 				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Asset Recovery Trend",
+					"doctype": "Asset Recovery Trend",
+				},
 			]
 		},
 		{

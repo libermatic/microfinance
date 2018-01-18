@@ -6,7 +6,6 @@ import frappe
 from frappe import _
 from frappe.utils.data import today, getdate, add_months, get_first_day, get_last_day
 from datetime import date
-from pprint import pprint
 
 from microfinance.microfinance_loan.doctype.loan.loan_utils import get_interval
 from microfinance.microfinance_loan.doctype.loan.loan import get_billing_periods, get_outstanding_principal
