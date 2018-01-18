@@ -9,7 +9,9 @@ def generate_interest_receivable():
 			'docstatus': 1,
 			'recovery_status': 'In Progress',
 		})
+    posting_date = today()
 	for loan_dict in loans:
-		if getdate(loan_dict.get('billing_date')).day == today().day:
+		if getdate(loan_dict.get('billing_date')).day == posting_date.day:
 			loan = frappe.get_doc('Loan', loan_dict.get('name'))
-			loan.make_interest(today())
+			loan.make_interest(posting_date)
+            loan.convert_interest_to_principal(posting_date)

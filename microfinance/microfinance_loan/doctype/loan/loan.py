@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils import flt
-from frappe.utils.data import getdate, today, date_diff
+from frappe.utils.data import getdate, today, date_diff, add_days
 from erpnext.controllers.accounts_controller import AccountsController
 from frappe.contacts.doctype.address.address import get_default_address
 from erpnext.accounts.general_ledger import make_gl_entries
@@ -67,8 +67,32 @@ class Loan(AccountsController):
 		]
 		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 
-	def convert_interest_to_principal(self):
-		pass
+	def convert_interest_to_principal(self, posting_date, cancel=0, adv_adj=0):
+		periods = get_billing_periods(self.name, add_days(posting_date, -1), 1)
+		if len(periods) != 1:
+			return None
+		amount = periods[0].get('interest')
+		billing_period = '{} - {}'.format(
+				periods[0].get('start_date'),
+				periods[0].get('end_date')
+			)
+		gl_entries = [
+			self.get_gl_dict({
+					'posting_date': posting_date,
+					'account': self.interest_receivable_account,
+					'credit': amount,
+					'party_type': 'Customer',
+					'party': self.customer,
+					'against': billing_period,
+				}),
+			self.get_gl_dict({
+					'posting_date': posting_date,
+					'account': self.loan_account,
+					'debit': amount,
+					'remarks': 'Converted to principal for: {}'.format(billing_period),
+				})
+		]
+		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 
 @frappe.whitelist()
 def get_undisbursed_principal(loan=None):
