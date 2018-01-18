@@ -87,9 +87,10 @@ def get_data(periodicity, period_list):
 			'recovery_status': 'In Progress',
 		})
 	data = []
+	column_total_dict = {}
 	for loan in loans:
 		row = [loan.get('customer'), loan.get('name')]
-		total = 0
+		row_total = 0
 		recovered = frappe.db.sql("""
 				SELECT posting_date, sum(credit) AS amount
 				FROM `tabGL Entry`
@@ -101,10 +102,27 @@ def get_data(periodicity, period_list):
 			key = get_period_key(r.get('posting_date'), periodicity)
 			amount = recovered_dict.get(key) or 0
 			amount += r.get('amount')
-			total += amount
 			recovered_dict.update({ key: amount })
 		for period in period_list:
+			row_total += recovered_dict.get(period.key) or 0
+
+			column_total = column_total_dict.get(period.key) or 0
+			column_total += recovered_dict.get(period.key) or 0
+			column_total_dict.update({ period.key: column_total })
+
 			row.append(recovered_dict.get(period.key))
-		row.append(total)
+
+		row.append(row_total)
 		data.append(row)
+
+	totals = [_("Total"), None]
+	grand_total = 0
+	for period in period_list:
+		column_total = column_total_dict.get(period.key) or 0
+		totals.append(column_total)
+
+		grand_total += column_total
+	totals.append(grand_total)
+	data.append(totals)
+
 	return data
