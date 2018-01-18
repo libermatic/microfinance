@@ -20,16 +20,18 @@ def get_interval(day_of_month, date_obj):
 		end_date = add_months(end_date, 1)
 	if end_date.day >= day_of_month:
 		end_date = add_days(end_date, -1)
-	return start_date, end_date
+	as_text = '{} - {}'.format(start_date, end_date)
+	return start_date, end_date, as_text
 
 def get_periods(day_of_month, date_obj, no_of_periods=5):
 	intervals = []
 	limit_start = -((cint(no_of_periods) + 1) / 2) + 1
 	limit_end = cint(no_of_periods) / 2 + 1
 	for x in range(limit_start, limit_end):
-		start_date, end_date = get_interval(day_of_month, add_months(date_obj, x))
+		start_date, end_date, as_text = get_interval(day_of_month, add_months(date_obj, x))
 		intervals.append({
 				'start_date': start_date,
-				'end_date': end_date
+				'end_date': end_date,
+				'as_text': as_text,
 			})
 	return intervals
