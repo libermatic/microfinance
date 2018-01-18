@@ -46,14 +46,14 @@ def get_data():
 				{
 					"type": "report",
 					"is_query_report": True,
-					"name": "Monthly Loan Interests",
-					"doctype": "Monthly Loan Interests",
+					"name": "Account Statement",
+					"doctype": "Account Statement",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
-					"name": "Account Statement",
-					"doctype": "Account Statement",
+					"name": "Asset Performance",
+					"doctype": "Asset Performance",
 				},
 			]
 		},
