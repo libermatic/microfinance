@@ -46,8 +46,10 @@ async function get_amount_and_period(frm) {
     if (periods.length === 1) {
       interval = periods[0];
     }
-    const { start_date, end_date, interest } = interval;
-    frm.set_value('billing_period', `${start_date} - ${end_date}`);
+    const { start_date, end_date, interest = 0 } = interval;
+    if (start_date && end_date) {
+      frm.set_value('billing_period', `${start_date} - ${end_date}`);
+    }
     frm.set_value('interest', interest);
   } else {
     frm.set_value('billing_period', null);
