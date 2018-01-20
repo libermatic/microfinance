@@ -56,6 +56,7 @@ frappe.ui.form.on('Loan', {
     if (frm.doc.docstatus === 1) {
       render_chart(frm);
       frm.set_df_property('loan_principal', 'read_only', 1);
+      frm.set_df_property('stipulated_recovery_amount', 'read_only', 1);
       const { disbursement_status, recovery_status } = frm.doc;
       if (['Sanctioned', 'Partially Disbursed'].includes(disbursement_status)) {
         frm

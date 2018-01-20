@@ -29,6 +29,8 @@ class Loan(AccountsController):
 			self.calculation_slab = application.calculation_slab
 		if self.disbursement_status == 'Fully Disbursed':
 			self.disbursement_status = 'Partially Disbursed'
+		if self.stipulated_recovery_amount != application.stipulated_recovery_amount:
+			self.stipulated_recovery_amount = application.stipulated_recovery_amount
 		self.save()
 
 	def make_interest(self, posting_date, cancel=0, adv_adj=0):
