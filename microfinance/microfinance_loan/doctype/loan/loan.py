@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils import flt
-from frappe.utils.data import getdate, today, date_diff, add_days
+from frappe.utils.data import getdate, today, date_diff, add_days, add_months
 from erpnext.controllers.accounts_controller import AccountsController
 from frappe.contacts.doctype.address.address import get_default_address
 from erpnext.accounts.general_ledger import make_gl_entries
@@ -39,10 +39,7 @@ class Loan(AccountsController):
 			return None
 		amount = periods[0].get('interest')
 		if amount:
-			billing_period = '{} - {}'.format(
-					periods[0].get('start_date'),
-					periods[0].get('end_date')
-				)
+			billing_period = periods[0].get('as_text')
 			self.posting_date = posting_date
 			gl_entries = [
 				self.get_gl_dict({
@@ -67,10 +64,7 @@ class Loan(AccountsController):
 			return None
 		amount = periods[0].get('interest')
 		if amount:
-			billing_period = '{} - {}'.format(
-					periods[0].get('start_date'),
-					periods[0].get('end_date')
-				)
+			billing_period = periods[0].get('as_text')
 			self.posting_date = posting_date
 			gl_entries = [
 				self.get_gl_dict({
@@ -211,7 +205,10 @@ def get_billing_periods(loan=None, interval_date=today(), no_of_periods=5):
 
 	def check_for_posting_date_and_get_interest(interval):
 		if date_diff(interval.get('start_date'), posting_date) < 0:
-			interval.update({ 'start_date': posting_date })
+			interval.update({
+					'start_date': posting_date,
+					'as_text': '{} - {}'.format(posting_date, interval.get('end_date'))
+				})
 		interval.update({
 				'interest': get_interest(
 						loan,
