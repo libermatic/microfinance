@@ -31,13 +31,13 @@ class Recovery(AccountsController):
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		gl_entries = []
-		if self.interest:
-			self.add_party_gl_entries(gl_entries)
+		if not self.check_existing_entry():
+			self.add_billing_gl_entries(gl_entries)
+		self.add_party_gl_entries(gl_entries)
 		self.add_loan_gl_entries(gl_entries)
-		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 		if len(self.loan_charges) > 0:
-			gl_entries = self.add_charges_gl_entries()
-			make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
+			self.add_charges_gl_entries(gl_entries)
+		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
 
 	def get_gl_dict(self, args):
 		gl_dict = frappe._dict({
@@ -47,14 +47,42 @@ class Recovery(AccountsController):
 		gl_dict.update(args)
 		return super(Recovery, self).get_gl_dict(gl_dict)
 
-	def add_party_gl_entries(self, gl_entries):
+	def check_existing_entry(self):
+		return frappe.db.exists('GL Entry', {
+				'account': self.interest_receivable_account,
+				'voucher_type': 'Loan',
+				'voucher_no': self.loan,
+				'period': self.billing_period,
+			})
+
+	def add_billing_gl_entries(self, gl_entries):
+		gl_entries.append(
+				self.get_gl_dict({
+						'account': self.interest_income_account,
+						'credit': self.interest,
+						'cost_center': frappe.db.get_value('Loan Settings', None, 'cost_center'),
+						'against': self.customer,
+						'remarks': 'Interest for period: {}'.format(self.billing_period)
+					})
+			)
 		gl_entries.append(
 				self.get_gl_dict({
 						'account': self.interest_receivable_account,
 						'debit': self.interest,
 						'party_type': 'Customer',
 						'party': self.customer,
-						'against': self.billing_period,
+						'against': self.interest_income_account,
+						'period': self.billing_period,
+					})
+			)
+
+	def add_party_gl_entries(self, gl_entries):
+		gl_entries.append(
+				self.get_gl_dict({
+						'account': self.payment_account,
+						'debit': self.interest,
+						'against': self.customer,
+						'remarks': make_remarks(self.principal)
 					})
 			)
 		gl_entries.append(
@@ -63,42 +91,26 @@ class Recovery(AccountsController):
 						'credit': self.interest,
 						'party_type': 'Customer',
 						'party': self.customer,
-						'against': self.billing_period,
+						'against': self.payment_account,
+						'period': self.billing_period,
 					})
 			)
 	def add_loan_gl_entries(self, gl_entries):
-		capital = self.amount - self.interest
 		gl_entries.append(
 				self.get_gl_dict({
 						'account': self.loan_account,
-						'credit': capital,
+						'credit': self.principal,
 					})
 			)
-		gl_entries.append(
-				self.get_gl_dict({
-						'account': self.interest_income_account,
-						'credit': self.interest,
-						'cost_center': frappe.db.get_value('Loan Settings', None, 'cost_center'),
-						'remarks': 'Interest for period: {}'.format(self.billing_period)
-					})
-			)
-		remarks = 'Payment received'
-		if capital:
-			remarks += '. Capital: {}'.format(fmt_money(
-					capital,
-					precision=0,
-					currency=frappe.defaults.get_user_default('currency')
-				))
 		gl_entries.append(
 				self.get_gl_dict({
 						'account': self.payment_account,
-						'debit': self.amount,
+						'debit': self.principal,
 						'against': self.customer,
-						'remarks': remarks
+						'remarks': make_remarks(self.principal)
 					})
 			)
-	def add_charges_gl_entries(self):
-		gl_entries = []
+	def add_charges_gl_entries(self, gl_entries):
 		total = 0
 		cost_center = frappe.db.get_value('Loan Settings', None, 'cost_center')
 		for row in self.loan_charges:
@@ -118,7 +130,6 @@ class Recovery(AccountsController):
 						'against': self.customer,
 					})
 			)
-		return gl_entries
 
 	def update_loan_status(self):
 		'''Method update recovery_status of Loan'''
@@ -147,3 +158,13 @@ class Recovery(AccountsController):
 		if do_save:
 			return loan.save()
 		return loan.name
+
+def make_remarks(principal=None):
+	remarks = 'Payment received'
+	if principal:
+		remarks += '. Capital: {}'.format(fmt_money(
+				principal,
+				precision=0,
+				currency=frappe.defaults.get_user_default('currency')
+			))
+	return remarks

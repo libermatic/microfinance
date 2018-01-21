@@ -47,7 +47,8 @@ class Loan(AccountsController):
 						'debit': amount,
 						'party_type': 'Customer',
 						'party': self.customer,
-						'against': billing_period,
+						'against': self.interest_income_account,
+						'period': billing_period,
 					}),
 				self.get_gl_dict({
 						'account': self.interest_income_account,
@@ -73,13 +74,14 @@ class Loan(AccountsController):
 						'credit': amount,
 						'party_type': 'Customer',
 						'party': self.customer,
-						'against': billing_period,
+						'against': self.loan_account,
+						'period': billing_period,
 					}),
 				self.get_gl_dict({
 						'posting_date': posting_date,
 						'account': self.loan_account,
 						'debit': amount,
-						'against': billing_period,
+						'against': self.interest_receivable_account,
 						'remarks': 'Converted to principal for: {}'.format(billing_period),
 					})
 			]
@@ -171,7 +173,7 @@ def get_interest(loan=None, start_date=today(), end_date=today()):
 		]
 	conds = [
 			"account = '{}'".format(interest_receivable_account),
-			"against = '{}'".format(period),
+			"period = '{}'".format(period),
 			"(({}) OR ({}))".format(" AND ".join(against_conds), " AND ".join(voucher_conds)),
 		]
 
