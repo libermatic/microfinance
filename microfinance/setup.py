@@ -51,3 +51,17 @@ def after_wizard_complete(args=None):
 			)
 		loan_settings.update({ key: account_name })
 	loan_settings.save()
+
+def _set_fixtures():
+    # for custom field
+	frappe.get_doc({
+			'doctype': 'Custom Field',
+			'dt': 'GL Entry',
+			'label': 'Period',
+			'fieldname': 'period',
+			'insert_after': 'fiscal_year',
+			'fieldtype': 'Text',
+		}).insert(ignore_if_duplicate=True)
+
+def after_install(args=None):
+	_set_fixtures()

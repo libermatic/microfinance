@@ -6,8 +6,8 @@ app_name = "microfinance"
 app_title = "Microfinance"
 app_publisher = "Libermatic"
 app_description = "Microfinance management"
-app_icon = "octicon octicon-file-directory"
-app_color = "grey"
+app_icon = "fa fa-university"
+app_color = "#8BC34A"
 app_email = "info@libermatic.com"
 app_license = "MIT"
 
@@ -60,7 +60,7 @@ doctype_js = {
 # ------------
 
 # before_install = "microfinance.install.before_install"
-# after_install = "microfinance.setup.after_install"
+after_install = "microfinance.setup.after_install"
 setup_wizard_complete = "microfinance.setup.after_wizard_complete"
 
 # Desk Notifications
