@@ -91,33 +91,56 @@ def get_data(period_list, filters=None):
 			'loan_account',
 		], filters=loan_filters)
 	data = []
+
+	def get_amount(entries, interval, key='amount'):
+		start_date, end_date, _0 = interval
+		amount = 0
+		for entry in entries:
+			entry_date = getdate(entry.get('period').split(' - ')[0])
+			if start_date <= entry_date < end_date:
+				amount += entry.get(key)
+		return amount
+
 	for loan in loans:
 		row = [loan.customer, loan.name, get_outstanding_principal(loan.name)]
 		total = 0
+
+		# this will be the list of entries that could be entered by Recovery or
+		# Loan scheduled tasks
+		owed_entries = frappe.db.sql("""
+				SELECT period, sum(debit) as amount, sum(credit) as paid_amount
+				FROM `tabGL Entry`
+				WHERE account = '{0}'
+				AND (
+						(voucher_type = 'Loan' AND voucher_no = '{1}') OR
+						(against_voucher_type = 'Loan' AND against_voucher = '{1}')
+					)
+				GROUP BY period
+			""".format(
+				loan.interest_receivable_account,
+				loan.name
+			), as_dict=True)
+
+		# this will be the list of entries that has been converted to principal
+		# by Loan scheduled tasks
+		converted_entries = frappe.db.sql("""
+				SELECT period, sum(debit) as amount
+				FROM `tabGL Entry`
+				WHERE account = '{0}'
+				AND voucher_type = 'Loan' AND voucher_no = '{1}' AND period IS NOT NULL
+				GROUP BY period
+			""".format(
+				loan.loan_account,
+				loan.name
+			), as_dict=True)
+
 		for period in period_list:
-			_0, _0, as_text = get_interval(
-					getdate(loan.billing_date).day,
-					period.start_date
-				)
-			conds = [
-					"against = '{}'".format(as_text),
-					"account = '{}'".format(loan.interest_receivable_account),
-					"against_voucher_type = 'Loan'",
-					"against_voucher = '{}'".format(loan.name),
-				]
-			owed = frappe.db.sql("""
-				SELECT sum(debit) FROM `tabGL Entry` WHERE {}
-			""".format(" AND ".join(conds)))[0][0] or 0
-			conds = [
-					"against = '{}'".format(as_text),
-					"account = '{}'".format(loan.interest_receivable_account),
-					"voucher_type = 'Loan'",
-					"voucher_no = '{}'".format(loan.name),
-				]
-			converted = frappe.db.sql("""
-				SELECT sum(credit) FROM `tabGL Entry` WHERE {}
-			""".format(" AND ".join(conds)))[0][0] or 0
-			amount = owed - converted
+			interval = get_interval(getdate(loan.billing_date).day, period.start_date)
+			converted_entry = get_amount(converted_entries, interval)
+			paid_amount = get_amount(owed_entries, interval, 'paid_amount')
+			amount = 0
+			if converted_entry == 0 and paid_amount > 0:
+				amount = get_amount(owed_entries, interval)
 			total += amount
 			row.append(amount)
 		current_periods = get_billing_periods(loan.name, today(), 1)
