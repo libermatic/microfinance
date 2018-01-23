@@ -11,7 +11,6 @@ def execute():
             UPDATE
                 `tabLoan`
             SET
-                rate_of_late_charges = rate_of_interest,
-                against_voucher = voucher_no
+                rate_of_late_charges = rate_of_interest
             WHERE rate_of_late_charges IS NULL
         """)
