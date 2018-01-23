@@ -7,6 +7,7 @@ function set_loan_fields(
     name,
     loan_plan,
     rate_of_interest,
+    rate_of_late_charges,
     calculation_slab,
     stipulated_recovery_amount,
     unset = false,
@@ -19,6 +20,8 @@ function set_loan_fields(
   frm.set_df_property('calculation_slab', 'read_only', unset ? 0 : 1);
   frm.set_value('rate_of_interest', unset ? null : rate_of_interest);
   frm.set_df_property('rate_of_interest', 'read_only', unset ? 0 : 1);
+  frm.set_value('rate_of_late_charges', unset ? null : rate_of_late_charges);
+  frm.set_df_property('rate_of_late_charges', 'read_only', unset ? 0 : 1);
   frm.set_value(
     'stipulated_recovery_amount',
     unset ? null : stipulated_recovery_amount
@@ -93,6 +96,7 @@ frappe.ui.form.on('Loan Application', {
           'loan_plan',
           'loan_principal',
           'rate_of_interest',
+          'rate_of_late_charges',
           'calculation_slab',
           'stipulated_recovery_amount',
         ],
@@ -132,6 +136,7 @@ frappe.ui.form.on('Loan Application', {
           loan_plan,
           loan_principal,
           rate_of_interest,
+          rate_of_late_charges,
           calculation_slab,
           stipulated_recovery_amount,
         }) => {
@@ -166,6 +171,7 @@ frappe.ui.form.on('Loan Application', {
                   name,
                   loan_plan,
                   rate_of_interest,
+                  rate_of_late_charges,
                   calculation_slab,
                   stipulated_recovery_amount,
                 });
@@ -194,9 +200,15 @@ frappe.ui.form.on('Loan Application', {
       const { message = {} } = await frappe.db.get_value(
         'Loan Plan',
         frm.doc['loan_plan'],
-        ['rate_of_interest', 'recovery_frequency', 'calculation_slab']
+        [
+          'rate_of_interest',
+          'recovery_frequency',
+          'calculation_slab',
+          'rate_of_late_charges',
+        ]
       );
       frm.set_value('rate_of_interest', message['rate_of_interest']);
+      frm.set_value('rate_of_late_charges', message['rate_of_late_charges']);
       frm.set_value('recovery_frequency', message['recovery_frequency']);
       frm.set_value('calculation_slab', message['calculation_slab']);
     }
