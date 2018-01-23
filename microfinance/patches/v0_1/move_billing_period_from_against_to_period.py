@@ -20,4 +20,4 @@ def execute():
             AND Loan.name IN ({})
             AND (GLEntry.against_voucher = Loan.name OR GLEntry.voucher_no = Loan.name)
             AND GLEntry.account IN (Loan.interest_receivable_account, Loan.loan_account)
-        """.format(", ".join(map(lambda x: "'{}'".format(x.get('name')), loans))), debug=True)
+        """.format(", ".join(map(lambda x: "'{}'".format(x.get('name')), loans))))

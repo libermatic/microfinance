@@ -33,6 +33,14 @@ class Loan(AccountsController):
 			self.stipulated_recovery_amount = application.stipulated_recovery_amount
 		self.save()
 
+	def get_gl_dict(self, args):
+		gl_dict = frappe._dict({
+				'against_voucher_type': 'Loan',
+				'against_voucher': self.name
+			})
+		gl_dict.update(args)
+		return super(Loan, self).get_gl_dict(gl_dict)
+
 	def make_interest(self, posting_date, cancel=0, adv_adj=0):
 		periods = get_billing_periods(self.name, posting_date, 1)
 		if len(periods) != 1:
@@ -131,17 +139,18 @@ def get_undisbursed_principal(loan=None):
 	return flt(loan_doc.get('loan_principal')) - disbursed_principal
 
 @frappe.whitelist()
-def get_outstanding_principal(loan, posting_date=today()):
+def get_outstanding_principal(loan, posting_date=None):
 	'''Get outstanding principal'''
-	if not isinstance(posting_date, date):
-		posting_date = getdate(posting_date)
 	loan_account = frappe.get_value('Loan', loan, 'loan_account')
 	cond = [
 			"account = '{}'".format(loan_account),
 			"against_voucher_type = 'Loan'",
 			"against_voucher = '{}'".format(loan),
-			"posting_date <= '{}'".format(posting_date),
 		]
+	if posting_date:
+		if not isinstance(posting_date, date):
+			posting_date = getdate(posting_date)
+		cond.append("posting_date <= '{}'".format(posting_date))
 	principal = frappe.db.sql("""
 			SELECT sum(debit) - sum(credit)
 			FROM `tabGL Entry`
