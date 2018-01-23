@@ -101,8 +101,15 @@ def get_data(period_list, filters=None):
 				amount += entry.get(key)
 		return amount
 
+	column_total_dict = {}
+	def update_column_total(key, value):
+		prev_value = column_total_dict.get(key) or 0
+		column_total_dict.update({ key: prev_value + value })
+
 	for loan in loans:
-		row = [loan.customer, loan.name, get_outstanding_principal(loan.name)]
+		outstanding = get_outstanding_principal(loan.name)
+		update_column_total('outstanding', outstanding)
+		row = [loan.customer, loan.name, outstanding]
 		total = 0
 
 		# this will be the list of entries that could be entered by Recovery or
@@ -142,6 +149,7 @@ def get_data(period_list, filters=None):
 			if converted_entry == 0 and paid_amount > 0:
 				amount = get_amount(owed_entries, interval)
 			total += amount
+			update_column_total(period.key, amount)
 			row.append(amount)
 		current_periods = get_billing_periods(loan.name, today(), 1)
 		current_owed = 0
@@ -152,4 +160,11 @@ def get_data(period_list, filters=None):
 			data.append(row)
 		elif total == 0:
 			data.append(row)
+
+	total_row = [_("Total"), None, column_total_dict.get('outstanding')]
+	for period in period_list:
+		column_total = column_total_dict.get(period.key) or 0
+		total_row.append(column_total)
+	data.append(total_row)
+
 	return data
