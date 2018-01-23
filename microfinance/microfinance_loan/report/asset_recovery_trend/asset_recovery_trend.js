@@ -41,5 +41,10 @@ frappe.query_reports['Asset Recovery Trend'] = {
       default: 'Monthly',
       reqd: 1,
     },
+    {
+      fieldname: 'show_completed',
+      label: __('Show Completed'),
+      fieldtype: 'Check',
+    },
   ],
 };
