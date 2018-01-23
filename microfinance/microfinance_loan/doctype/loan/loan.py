@@ -184,6 +184,14 @@ def get_interest(loan=None, start_date=today(), end_date=today()):
 	'''Get interest amount'''
 	if not loan:
 		return None
+	owed_amount = 0
+
+	principal = get_outstanding_principal(loan, end_date)
+	rate, slab = frappe.get_value('Loan', loan, ['rate_of_interest', 'calculation_slab'])
+	if slab:
+		principal = math.ceil(principal / slab) * slab
+		owed_amount = principal * rate / 100.0
+
 	period = '{} - {}'.format(start_date, end_date)
 	interest_receivable_account = frappe.get_value(
 			'Loan',
@@ -191,37 +199,23 @@ def get_interest(loan=None, start_date=today(), end_date=today()):
 			'interest_receivable_account'
 		)
 
-	against_conds = [
-			"against_voucher_type = 'Loan'",
-			"against_voucher = '{}'".format(loan),
-		]
-	voucher_conds = [
-			"voucher_type = 'Loan'",
-			"voucher_no = '{}'".format(loan),
-		]
 	conds = [
 			"account = '{}'".format(interest_receivable_account),
 			"period = '{}'".format(period),
-			"(({}) OR ({}))".format(" AND ".join(against_conds), " AND ".join(voucher_conds)),
+			"against_voucher_type = 'Loan'",
+			"against_voucher = '{}'".format(loan),
 		]
 
-	owed, paid = frappe.db.sql("""
+	paid_amount = frappe.db.sql("""
 			SELECT
-				sum(debit) as owed,
 				sum(credit) as paid
 			FROM `tabGL Entry`
 			WHERE {}
-		""".format(" AND ".join(conds)))[0]
+		""".format(" AND ".join(conds)))[0][0] or 0
 
-	owed, paid = flt(owed), flt(paid)
-	if owed > 0:
-		return owed - paid
+	amount = owed_amount - paid_amount
 
-	principal = get_outstanding_principal(loan, end_date)
-	rate, slab = frappe.get_value('Loan', loan, ['rate_of_interest', 'calculation_slab'])
-	if slab:
-		principal = math.ceil(principal / slab) * slab
-	return principal * rate / 100.0
+	return amount if amount > 0 else 0
 
 @frappe.whitelist()
 def get_billing_periods(loan=None, interval_date=today(), no_of_periods=5):
