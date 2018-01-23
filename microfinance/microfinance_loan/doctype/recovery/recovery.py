@@ -31,12 +31,15 @@ class Recovery(AccountsController):
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		gl_entries = []
-		if not self.check_existing_entry():
-			self.add_billing_gl_entries(gl_entries)
+
+		unbilled = self.get_unbilled()
+		if unbilled:
+			self.add_billing_gl_entries(gl_entries, unbilled)
 		self.add_party_gl_entries(gl_entries)
 		self.add_loan_gl_entries(gl_entries)
 		if len(self.loan_charges) > 0:
 			self.add_charges_gl_entries(gl_entries)
+
 		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
 
 	def get_gl_dict(self, args):
@@ -47,19 +50,22 @@ class Recovery(AccountsController):
 		gl_dict.update(args)
 		return super(Recovery, self).get_gl_dict(gl_dict)
 
-	def check_existing_entry(self):
-		return frappe.db.exists('GL Entry', {
-				'account': self.interest_receivable_account,
-				'voucher_type': 'Loan',
-				'voucher_no': self.loan,
-				'period': self.billing_period,
-			})
+	def get_unbilled(self):
+		unbilled = frappe.db.sql("""
+				SELECT sum(debit - credit)
+				FROM `tabGL Entry`
+				WHERE account = '{0}'
+				AND against_voucher_type = 'Loan'
+				AND against_voucher = '{1}'
+				AND period = '{2}'
+			""".format(self.interest_receivable_account, self.loan, self.billing_period))[0][0] or 0
+		return self.interest - flt(unbilled)
 
-	def add_billing_gl_entries(self, gl_entries):
+	def add_billing_gl_entries(self, gl_entries, unbilled):
 		gl_entries.append(
 				self.get_gl_dict({
 						'account': self.interest_income_account,
-						'credit': self.interest,
+						'credit': unbilled,
 						'cost_center': frappe.db.get_value('Loan Settings', None, 'cost_center'),
 						'against': self.customer,
 						'remarks': 'Interest for period: {}'.format(self.billing_period)
@@ -68,7 +74,7 @@ class Recovery(AccountsController):
 		gl_entries.append(
 				self.get_gl_dict({
 						'account': self.interest_receivable_account,
-						'debit': self.interest,
+						'debit': unbilled,
 						'party_type': 'Customer',
 						'party': self.customer,
 						'against': self.interest_income_account,
