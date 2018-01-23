@@ -21,7 +21,7 @@ def execute(filters=None):
 			filters.get('periodicity')
 		)
 	columns = get_columns(periodicity, period_list)
-	data = get_data(periodicity, period_list)
+	data = get_data(periodicity, period_list, filters)
 	return columns, data
 
 def get_columns(periodicity, period_list):
@@ -81,10 +81,14 @@ def get_period_key(start_date, periodicity):
 	if periodicity == 'Yearly':
 		return 'mar_{}'.format(start_date.year if start_date.month < 4 else start_date.year + 1)
 
-def get_data(periodicity, period_list):
+def get_data(periodicity, period_list, filters):
+	recovery_status_filters = ['In Progress']
+	if filters.get('show_completed'):
+		recovery_status_filters.append('Repaid')
+
 	loans = frappe.get_list('Loan', ['name', 'customer', 'loan_account'], filters = {
 			'docstatus': 1,
-			'recovery_status': 'In Progress',
+			'recovery_status': ("in", ', '.join(recovery_status_filters)),
 		})
 	data = []
 	column_total_dict = {}
