@@ -15,7 +15,7 @@ class BillingPeriodDialog extends frappe.ui.Dialog {
     this.props = props;
     this.state = {
       loan: props.frm.doc['loan'],
-      date: frappe.datetime.nowdate(),
+      date: props.frm.doc['posting_date'] || frappe.datetime.nowdate(),
     };
     this.render_content();
   }
