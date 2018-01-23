@@ -79,7 +79,7 @@ def get_data(period_list, filters=None):
 	loan_plan = filters.get('loan_plan')
 	loan_filters = {
 		'docstatus': 1,
-		'recovery_status': 'In Progress',
+		'recovery_status': ("in", "In Progress, Not Started"),
 	}
 	if loan_plan:
 		loan_filters.update({ 'loan_plan': loan_plan })

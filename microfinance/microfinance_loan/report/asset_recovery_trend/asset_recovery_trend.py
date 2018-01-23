@@ -46,14 +46,14 @@ def get_columns(periodicity, period_list):
 			'label': period.label,
 			'fieldtype': 'Currency',
 			'options': 'currency',
-			'width': 150
+			'width': 90
 		})
 	if periodicity != 'Yearly':
 		columns.append({
 				'fieldname': 'total',
 				'label': _("Total"),
 				'fieldtype': 'Currency',
-				'width': 150
+				'width': 90
 			})
 	return columns
 
