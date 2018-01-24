@@ -12,6 +12,5 @@ def execute():
                 `tabLoan`
             SET
                 rate_of_late_charges = rate_of_interest
-                against_voucher = voucher_no
             WHERE rate_of_late_charges IS NULL
         """)
