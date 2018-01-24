@@ -180,6 +180,23 @@ def get_recovered_principal(loan):
 		""".format(" AND ".join(conds)))[0][0] or 0
 	return recovered + unrecorded
 
+def get_wrote_off_principal(loan):
+	'''Wrote off amount'''
+	company = frappe.get_value('Loan', loan, 'company')
+
+	conds = [
+			"account = '{}'".format(frappe.get_value('Company', company, 'write_off_account')),
+			"against_voucher_type = 'Loan'",
+			"against_voucher = '{}'".format(loan)
+		]
+
+	wrote_off = frappe.db.sql("""
+			SELECT sum(debit - credit)
+			FROM `tabGL Entry`
+			where {}
+		""".format(" AND ".join(conds)))[0][0] or 0
+	return flt(wrote_off)
+
 def get_interest(loan=None, start_date=today(), end_date=today()):
 	'''Get interest amount'''
 	if not loan:

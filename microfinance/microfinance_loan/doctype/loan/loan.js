@@ -19,7 +19,7 @@ async function render_chart(frm) {
       parent: chart_area.selector,
       type: 'percentage',
       data,
-      colors: ['green', 'orange', 'blue'],
+      colors: ['green', 'orange', 'blue', 'grey'],
     });
     $(chart.container)
       .find('.title')
