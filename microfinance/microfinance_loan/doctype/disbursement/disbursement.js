@@ -33,6 +33,9 @@ frappe.ui.form.on('Disbursement', {
     if (!frm.doc['total']) {
       frappe.throw('Cannot do transaction of zero values.');
     }
+    if (moment(frm.doc['posting_date']).isAfter()) {
+      frappe.throw('Posting date cannot be in the future.');
+    }
   },
   refresh: function(frm) {
     frm.fields_dict['loan'].get_query = doc => ({

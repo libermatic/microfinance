@@ -16,6 +16,11 @@ async function set_outstanding(frm) {
 }
 
 frappe.ui.form.on('Loan Write Off', {
+  validate: function(frm) {
+    if (moment(frm.doc['posting_date']).isAfter()) {
+      frappe.throw('Posting date cannot be in the future.');
+    }
+  },
   loan: async function(frm) {
     set_outstanding(frm);
     const { message } = await frappe.db.get_value(

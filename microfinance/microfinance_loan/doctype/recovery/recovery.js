@@ -64,6 +64,9 @@ frappe.ui.form.on('Recovery', {
         'There are still a few items being loaded. Please wait for a while and retry.'
       );
     }
+    if (moment(frm.doc['posting_date']).isAfter()) {
+      frappe.throw('Posting date cannot be in the future.');
+    }
     if (!frm.doc['total']) {
       frappe.throw('Cannot do transaction of zero values.');
     }
