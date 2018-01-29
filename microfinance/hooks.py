@@ -15,8 +15,8 @@ app_license = "MIT"
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "assets/css/microfinance.css"
-app_include_css = "assets/microfinance/css/devel.css"
+app_include_css = "assets/css/microfinance.css"
+# app_include_css = "assets/microfinance/css/devel.css"
 # app_include_js = "/assets/microfinance/js/microfinance.js"
 
 # include js, css files in header of web template
