@@ -30,7 +30,7 @@ function set_loan_fields(
 
 frappe.ui.form.on('Loan Application', {
   refresh: function(frm) {
-    if (!frm.doc.__islocal) {
+    if (frm.doc.docstatus === 1) {
       if (frm.doc['status'] === 'Open') {
         frm.add_custom_button(__('Reject'), async function() {
           await frappe.call({
