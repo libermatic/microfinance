@@ -1,0 +1,39 @@
+{% if (name) { %}
+<div class="microf-customer-section">
+  <dl>
+    <div>
+      <dt>{{ __("Department") }}</dt>
+      <dd>{{ department }}</dd>
+    </div>
+    <div>
+      <dt>{{ __("Designation") }}</dt>
+      <dd>{{ designation }}</dd>
+    </div>
+    <div>
+      <dt>{{ __("Posting") }}</dt>
+      <dd>{{ posting }}</dd>
+    </div>
+    <div>
+      <dt>{{ __("Date of Joining") }}</dt>
+      <dd>{{ frappe.datetime.str_to_user(date_of_joining) }}</dd>
+    </div>
+    <div>
+      <dt>{{ __("Date of Retirement") }}</dt>
+      <dd>{{ frappe.datetime.str_to_user(date_of_retirement) }}</dd>
+    </div>
+    <div>
+      <dt>{{ __("Net Salary Amount") }}</dt>
+      <dd>{{ format_currency(net_salary_amount, frappe.defaults.get_default("currency"), 2) }}</dd>
+    </div>
+  </dl>
+  <a
+    href="#Form/Loanee Details/{{ encodeURIComponent(name) }}"
+    class="btn btn-default btn-xs btn-loanee_details-edit"
+  >
+    {{ __("Edit") }}
+  </a>
+</div>
+{% } else { %}
+<p class="text-muted small">{%= __("No details yet.") %}</p>
+<button class="btn btn-xs btn-default btn-loanee_details">{{ __("Add Details") }}</button>
+{% } %}

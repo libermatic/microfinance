@@ -1,0 +1,23 @@
+.microf-customer-section {
+  background-color: #fafbfc;
+  border: 1px solid #d1d8dd;
+  border-radius: 3px;
+  font-size: 12px;
+}
+.microf-customer-section dl {
+  display: flex;
+  flex-flow: row wrap;
+  padding: 6px 12px;
+}
+.microf-customer-section div {
+  margin: 6px 0;
+  width: 100%;
+}
+@media screen and (min-width: 768px) {
+  .microf-customer-section div {
+    width: 50%;
+  }
+}
+.microf-customer-section .btn-loanee_details-edit {
+  margin: 0 12px 12px;
+}

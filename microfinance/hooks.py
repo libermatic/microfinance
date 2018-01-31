@@ -17,7 +17,7 @@ app_license = "MIT"
 # include js, css files in header of desk.html
 app_include_css = "assets/css/microfinance.css"
 # app_include_css = "assets/microfinance/css/devel.css"
-# app_include_js = "/assets/microfinance/js/microfinance.js"
+app_include_js = "assets/js/microfinance.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/microfinance/css/microfinance.css"
@@ -28,9 +28,7 @@ app_include_css = "assets/css/microfinance.css"
 
 # include js in doctype views
 doctype_js = {
-        'Loan Plan' : ["public/js/utils.js"],
-        'Loan' : ["public/js/utils.js"],
-        'Recovery' : ["public/js/utils.js"],
+        'Customer' : ["public/js/customer_details.js"],
     }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
