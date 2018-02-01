@@ -105,11 +105,17 @@ frappe.ui.form.on('Recovery', {
   loan: async function(frm) {
     try {
       this.loading.append('amount');
-      const [{ message = {} }] = await Promise.all([
+      const [{ message }] = await Promise.all([
         frappe.db.get_value('Loan', frm.doc['loan'], 'customer'),
         get_amount_and_period(frm),
       ]);
-      frm.set_value('customer', message['customer']);
+      if (message) {
+        frm.set_value('customer', message['customer']);
+        frm.set_df_property('edit_interest', 'hidden', 0);
+      } else {
+        frm.set_value('customer', null);
+        frm.set_df_property('edit_interest', 'hidden', 1);
+      }
     } catch (e) {
       frappe.throw(e.toString());
     } finally {
@@ -127,6 +133,13 @@ frappe.ui.form.on('Recovery', {
   },
   principal: calculate_amount,
   interest: calculate_amount,
+  edit_interest: function(frm) {
+    if (frm.doc['edit_interest']) {
+      frm.set_df_property('interest', 'read_only', 0);
+    } else {
+      frm.set_df_property('interest', 'read_only', 1);
+    }
+  },
   amount: calculate_total,
   select_interval: function(frm) {
     if (frm.doc['loan']) {
@@ -135,6 +148,7 @@ frappe.ui.form.on('Recovery', {
         on_select: ({ period, interest }) => {
           frm.set_value('billing_period', period);
           frm.set_value('interest', interest);
+          frm.set_value('edit_interest', false);
         },
       });
       dialog.show();
