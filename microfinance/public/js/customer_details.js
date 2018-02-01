@@ -21,7 +21,7 @@ frappe.ui.form.on('Customer', {
         .html(frappe.render_template('loanee_details', data))
         .find('.btn-loanee_details')
         .on('click', function() {
-          frappe.new_doc('Loanee Details');
+          frappe.new_doc('Loanee Details', { customer: frm.doc['name'] });
         });
     }
   },
