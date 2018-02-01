@@ -13,5 +13,5 @@ def generate_interest_receivable(posting_date):
 	for loan_dict in loans:
 		if getdate(loan_dict.get('billing_date')).day == getdate(posting_date).day:
 			loan = frappe.get_doc('Loan', loan_dict.get('name'))
-			loan.make_interest(posting_date)
-			loan.convert_interest_to_principal(posting_date)
+			interest = loan.convert_interest_to_principal(posting_date)
+			loan.make_interest(posting_date, interest)

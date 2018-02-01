@@ -41,14 +41,18 @@ class Loan(AccountsController):
 		gl_dict.update(args)
 		return super(Loan, self).get_gl_dict(gl_dict)
 
-	def make_interest(self, posting_date, cancel=0, adv_adj=0):
+	def make_interest(self, posting_date, amount, cancel=0, adv_adj=0):
 		periods = get_billing_periods(self.name, posting_date, 1)
 		if len(periods) != 1:
 			return None
-		amount = periods[0].get('interest')
 		if amount:
 			billing_period = periods[0].get('as_text')
 			self.posting_date = posting_date
+
+			# check whether entries to recvble are already present
+			owed_amount = self.get_owed(billing_period)
+			if not amount - owed_amount > 0:
+				return None
 			gl_entries = [
 				self.get_gl_dict({
 						'account': self.interest_receivable_account,
@@ -68,6 +72,23 @@ class Loan(AccountsController):
 			]
 			make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 
+	def get_owed(self, period):
+		conds = [
+				"account = '{}'".format(self.interest_receivable_account),
+				"period = '{}'".format(period),
+				"against_voucher_type = 'Loan'",
+				"against_voucher = '{}'".format(self.name),
+			]
+
+		owed_amount = frappe.db.sql("""
+				SELECT
+					sum(debit) AS owed_amount
+				FROM `tabGL Entry`
+				WHERE {}
+			""".format(" AND ".join(conds)))[0][0] or 0
+
+		return owed_amount
+
 	def convert_interest_to_principal(self, posting_date, cancel=0, adv_adj=0):
 		periods = get_billing_periods(self.name, add_days(posting_date, -1), 1)
 		if len(periods) != 1:
@@ -77,22 +98,50 @@ class Loan(AccountsController):
 		if amount:
 			billing_period = periods[0].get('as_text')
 			self.posting_date = posting_date
-			gl_entries = [
-				self.get_gl_dict({
-						'account': self.interest_receivable_account,
-						'credit': amount,
-						'party_type': 'Customer',
-						'party': self.customer,
-						'against': self.loan_account,
-						'period': billing_period,
-					}),
-				self.get_gl_dict({
-						'account': self.loan_account,
-						'debit': amount,
-						'against': self.interest_receivable_account,
-						'remarks': 'Converted to principal for: {}'.format(billing_period),
-					})
-			]
+
+			# check whether entries to recvble are already present
+			owed_amount = self.get_owed(billing_period)
+			gl_entries = []
+			if amount - owed_amount > 0:
+				gl_entries.append(
+						self.get_gl_dict({
+								'account': self.interest_receivable_account,
+								'debit': amount - owed_amount,
+								'party_type': 'Customer',
+								'party': self.customer,
+								'against': self.interest_income_account,
+								'period': billing_period,
+							})
+					)
+				gl_entries.append(
+					self.get_gl_dict({
+							'account': self.interest_income_account,
+							'credit': amount - owed_amount,
+							'against': self.customer,
+							'cost_center': frappe.db.get_value('Loan Settings', None, 'cost_center'),
+							'remarks': 'Interest for period: {}'.format(billing_period),
+						})
+					)
+
+			gl_entries.append(
+					self.get_gl_dict({
+							'account': self.interest_receivable_account,
+							'credit': amount,
+							'party_type': 'Customer',
+							'party': self.customer,
+							'against': self.loan_account,
+							'period': billing_period,
+						})
+				)
+			gl_entries.append(
+					self.get_gl_dict({
+							'account': self.loan_account,
+							'debit': amount,
+							'against': self.interest_receivable_account,
+							'remarks': 'Converted to principal for: {}'.format(billing_period),
+						})
+				)
+
 			if self.rate_of_late_charges:
 				late_amount = amount * self.rate_of_late_charges / 100
 				gl_entries.append(
@@ -112,7 +161,12 @@ class Loan(AccountsController):
 							'remarks': 'Converted to principal for: {}'.format(billing_period),
 						})
 					)
-			make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
+			make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
+
+		principal = get_outstanding_principal(self.name, posting_date)
+		if self.calculation_slab:
+			principal = math.ceil(principal / self.calculation_slab) * self.calculation_slab
+		return principal * self.rate_of_interest / 100
 
 @frappe.whitelist()
 def get_undisbursed_principal(loan=None):
