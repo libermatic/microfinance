@@ -255,13 +255,6 @@ def get_interest(loan=None, start_date=today(), end_date=today()):
 	'''Get interest amount'''
 	if not loan:
 		return None
-	owed_amount = 0
-
-	principal = get_outstanding_principal(loan, end_date)
-	rate, slab = frappe.get_value('Loan', loan, ['rate_of_interest', 'calculation_slab'])
-	if slab:
-		principal = math.ceil(principal / slab) * slab
-		owed_amount = principal * rate / 100.0
 
 	period = '{} - {}'.format(start_date, end_date)
 	interest_receivable_account = frappe.get_value(
@@ -277,16 +270,25 @@ def get_interest(loan=None, start_date=today(), end_date=today()):
 			"against_voucher = '{}'".format(loan),
 		]
 
-	paid_amount = frappe.db.sql("""
+	owed_amount, paid_amount = frappe.db.sql("""
 			SELECT
-				sum(credit) as paid
+				sum(debit) AS owed_amount,
+				sum(credit) AS paid_amount
 			FROM `tabGL Entry`
 			WHERE {}
-		""".format(" AND ".join(conds)))[0][0] or 0
+		""".format(" AND ".join(conds)))[0]
 
-	amount = owed_amount - paid_amount
+	if owed_amount:
+		return owed_amount - paid_amount
 
-	return amount if amount > 0 else 0
+	interest = 0
+	principal = get_outstanding_principal(loan, end_date)
+	rate, slab = frappe.get_value('Loan', loan, ['rate_of_interest', 'calculation_slab'])
+	if slab:
+		principal = math.ceil(principal / slab) * slab
+		interest = principal * rate / 100.0
+
+	return interest if interest > 0 else 0
 
 @frappe.whitelist()
 def get_billing_periods(loan=None, interval_date=today(), no_of_periods=5):
