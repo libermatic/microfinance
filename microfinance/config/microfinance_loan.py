@@ -37,11 +37,6 @@ def get_data():
 					"name": "Loan Write Off",
 					"description": _("Write offs to loan outstanding amounts"),
 				},
-				{
-					"type": "doctype",
-					"name": "Journal Entry",
-					"description": _("Journal entries"),
-				},
 			]
 		},
 		{

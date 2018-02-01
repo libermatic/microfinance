@@ -63,5 +63,26 @@ def _set_fixtures():
 			'fieldtype': 'Text',
 		}).insert(ignore_if_duplicate=True)
 
+	frappe.get_doc({
+			'doctype': 'Custom Field',
+			'dt': 'Customer',
+			'label': 'Loanee Details',
+			'fieldname': 'loanee_details',
+			'insert_after': 'email_id',
+			'fieldtype': 'Section Break',
+			'depends_on': 'eval:doc.__unsaved!=1',
+		}).insert(ignore_if_duplicate=True)
+
+	frappe.get_doc({
+			'doctype': 'Custom Field',
+			'dt': 'Customer',
+			'label': 'Loanee Details HTML',
+			'fieldname': 'loanee_details_html',
+			'insert_after': 'loanee_details',
+			'fieldtype': 'HTML',
+			'depends_on': 'eval:doc.__unsaved!=1',
+			'read_only': 1,
+		}).insert(ignore_if_duplicate=True)
+
 def after_install(args=None):
 	_set_fixtures()
