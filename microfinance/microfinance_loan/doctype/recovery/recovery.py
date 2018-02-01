@@ -10,7 +10,7 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 from frappe.utils.data import fmt_money
 
-from microfinance.microfinance_loan.doctype.loan.loan import get_outstanding_principal
+from microfinance.microfinance_loan.doctype.loan.loan import get_outstanding_principal, get_interest
 
 class Recovery(AccountsController):
 	def validate(self):
@@ -60,7 +60,10 @@ class Recovery(AccountsController):
 				AND against_voucher = '{1}'
 				AND period = '{2}'
 			""".format(self.interest_receivable_account, self.loan, self.billing_period))[0][0] or 0
-		return self.interest - flt(unbilled)
+		if self.billing_period:
+			start_date, end_date = self.billing_period.split(' - ')
+			return get_interest(self.loan, start_date, end_date) - flt(unbilled)
+		return 0
 
 	def add_billing_gl_entries(self, gl_entries, unbilled):
 		gl_entries.append(
