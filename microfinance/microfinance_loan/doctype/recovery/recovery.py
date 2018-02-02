@@ -35,7 +35,8 @@ class Recovery(AccountsController):
 		unbilled = self.get_unbilled()
 		if unbilled:
 			self.add_billing_gl_entries(gl_entries, unbilled)
-		self.add_party_gl_entries(gl_entries)
+		if self.interest:
+			self.add_party_gl_entries(gl_entries)
 		if self.principal:
 			self.add_loan_gl_entries(gl_entries)
 		if len(self.loan_charges) > 0:
