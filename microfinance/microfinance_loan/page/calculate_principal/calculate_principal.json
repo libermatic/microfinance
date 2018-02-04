@@ -1,0 +1,23 @@
+{
+ "content": null, 
+ "creation": "2018-02-04 20:36:29.134414", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "idx": 0, 
+ "modified": "2018-02-04 20:36:42.120768", 
+ "modified_by": "Administrator", 
+ "module": "Microfinance Loan", 
+ "name": "calculate_principal", 
+ "owner": "Administrator", 
+ "page_name": "calculate_principal", 
+ "roles": [
+  {
+   "role": "Loan Manager"
+  }
+ ], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "system_page": 0, 
+ "title": "Calculate Loan Principal"
+}

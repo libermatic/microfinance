@@ -40,6 +40,16 @@ def get_data():
 			]
 		},
 		{
+			"label": _("Tools"),
+			"items": [
+				{
+					"type": "page",
+					"name": "calculate_principal",
+					"label": _("Calculate Loan Principal")
+				}
+			]
+		},
+		{
 			"label": _("Reports"),
 			"items": [
 				{
