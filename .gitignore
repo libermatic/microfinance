@@ -4,3 +4,4 @@
 *.swp
 tags
 microfinance/docs/current
+node_modules
