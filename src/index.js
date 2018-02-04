@@ -1,8 +1,7 @@
-import React from 'react';
-import { render } from 'react-dom';
-
-import logger from './utils/logger';
-import App from './components/App';
+import BillingPeriodDialog from './components/BillingPeriodDialog';
+import LoaneeDetails from './components/LoaneeDetails';
+import CalculatePrincipal from './components/CalculatePrincipal';
+import LoadingHandler from './utils/LoadingHandler';
 
 // Enable LiveReload
 if (__ENV__ !== 'production') {
@@ -13,8 +12,9 @@ if (__ENV__ !== 'production') {
   document.body.appendChild(script);
 }
 
-export function CalculatePrincipal(node) {
-  render(<App />, node);
-  logger('Component mounted.');
-  return { date: Date.now() };
-}
+export {
+  LoadingHandler,
+  BillingPeriodDialog,
+  LoaneeDetails,
+  CalculatePrincipal,
+};
