@@ -72,7 +72,7 @@ frappe.ui.form.on('Recovery', {
     }
   },
   refresh: function(frm) {
-    frm.fields_dict['loan'].get_query = doc => ({
+    frm.fields_dict['loan'].get_query = () => ({
       filters: { docstatus: 1 },
     });
     frappe.ui.form.on('Other Loan Charge', {
@@ -81,7 +81,7 @@ frappe.ui.form.on('Recovery', {
     });
   },
   onload: async function(frm) {
-    this.loading = new microfinance.utils.LoadingHandler();
+    this.loading = new microfinance.LoadingHandler();
     if (frm.doc.__islocal) {
       try {
         this.loading.append('settings');
@@ -126,7 +126,6 @@ frappe.ui.form.on('Recovery', {
     try {
       this.loading.append('period');
       await get_amount_and_period(frm);
-    } catch (e) {
     } finally {
       this.loading.remove('period');
     }
@@ -143,15 +142,21 @@ frappe.ui.form.on('Recovery', {
   amount: calculate_total,
   select_interval: function(frm) {
     if (frm.doc['loan']) {
-      const dialog = new microfinance.utils.BillingPeriodDialog({
-        frm,
+      const dialog = new frappe.ui.Dialog({
+        title: 'Billing Periods',
+        fields: [{ fieldname: 'ht', fieldtype: 'HTML' }],
+      });
+      dialog.show();
+      microfinance.BillingPeriodDialog(dialog.fields_dict['ht'].wrapper, {
+        loan: frm.doc['loan'],
+        date: frm.doc['posting_date'],
         on_select: ({ period, interest }) => {
           frm.set_value('billing_period', period);
           frm.set_value('interest', interest);
           frm.set_value('edit_interest', false);
+          dialog.hide();
         },
       });
-      dialog.show();
     }
   },
   mode_of_payment: async function(frm) {
