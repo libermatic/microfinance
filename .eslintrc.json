@@ -7,9 +7,10 @@
   "globals": {
     "__ENV__": true,
     "frappe": true,
+    "microfinance": true,
     "moment": true
   },
-  "extends": ["eslint:recommended", "plugin:react/recommended"],
+  "extends": ["eslint:recommended"],
   "parserOptions": {
     "ecmaFeatures": {
       "experimentalObjectRestSpread": true,
@@ -17,12 +18,10 @@
     },
     "sourceType": "module"
   },
-  "plugins": ["react", "class-property"],
   "rules": {
     "indent": ["error", 2, { "SwitchCase": 1 }],
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single"],
-    "semi": ["error", "always"],
-    "class-property/class-property-semicolon": ["error", "never"]
+    "semi": ["error", "always"]
   }
 }
