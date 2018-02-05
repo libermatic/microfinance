@@ -1,5 +1,5 @@
+// @flow
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import injectSheet from 'react-jss';
 
 const styles = {
@@ -17,8 +17,25 @@ const styles = {
 
 const NO_OF_PERIODS = 5;
 
-class BillingPeriodList extends Component {
-  state = { loading: true };
+export type Props = {
+  classes: any,
+  loan: string,
+  date: string,
+  on_select: ({ period?: string, interest?: number }) => void,
+};
+
+type State = {
+  loading: boolean,
+  periods: Array<{
+    start_date: string,
+    end_date: string,
+    interest: number,
+    as_text: string,
+  }>,
+};
+
+class BillingPeriodList extends Component<Props, State> {
+  state = { loading: true, periods: [] };
   componentDidMount() {
     this.fetch_periods();
   }
@@ -36,7 +53,7 @@ class BillingPeriodList extends Component {
           'microfinance.microfinance_loan.doctype.loan.loan.get_billing_periods',
         args: {
           loan,
-          interval_date: date || this.state.date,
+          interval_date: date,
           no_of_periods: NO_OF_PERIODS,
         },
       });
@@ -49,7 +66,7 @@ class BillingPeriodList extends Component {
   }
   render() {
     const { classes } = this.props;
-    const { loading, periods = [] } = this.state;
+    const { loading, periods } = this.state;
     if (loading) {
       return <div className={classes.message}>Loading...</div>;
     }

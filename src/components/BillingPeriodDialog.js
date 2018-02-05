@@ -1,9 +1,11 @@
+// @flow
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 import injectSheet from 'react-jss';
 
 import logger from '../utils/logger';
 import BillingPeriodList from './BillingPeriodList';
+import type { Props as BillingPeriodListProps } from './BillingPeriodList';
 
 const styles = {
   actions: {
@@ -14,7 +16,17 @@ const styles = {
 
 const NO_OF_PERIODS = 5;
 
-class BillingPeriodDialog extends Component {
+type Props = {
+  classes: any,
+  date: string,
+  on_select: ({ period?: string, interest?: number }) => void,
+};
+
+type State = {
+  date: string,
+};
+
+class BillingPeriodDialog extends Component<Props, State> {
   state = { date: this.props.date || frappe.datetime.nowdate() };
   render() {
     const { classes } = this.props;
@@ -73,7 +85,7 @@ class BillingPeriodDialog extends Component {
 }
 const BillingPeriodDialogStyled = injectSheet(styles)(BillingPeriodDialog);
 
-export default function(node, props) {
+export default function(node: HTMLDivElement, props: BillingPeriodListProps) {
   render(<BillingPeriodDialogStyled {...props} />, node);
   logger('BillingPeriodDialog mounted');
 }

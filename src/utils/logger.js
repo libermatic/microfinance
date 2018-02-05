@@ -1,3 +1,4 @@
+// @flow
 import debug from 'debug';
 
 const logger = debug('microfinance:log');

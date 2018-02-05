@@ -1,3 +1,4 @@
+// @flow
 import React from 'react';
 import { render } from 'react-dom';
 import injectSheet from 'react-jss';
@@ -10,7 +11,7 @@ const CalculatePrincipal = injectSheet(styles)(() => (
   <div>CalculatePrincipal</div>
 ));
 
-export default function(node) {
+export default function(node: HTMLDivElement) {
   render(<CalculatePrincipal />, node);
   logger('CalculatePrincipal mounted');
 }
