@@ -5,7 +5,7 @@ import injectSheet from 'react-jss';
 
 import logger from '../utils/logger';
 import BillingPeriodList from './BillingPeriodList';
-import type { Props as BillingPeriodListProps } from './BillingPeriodList';
+import type { Props } from './BillingPeriodList';
 
 const styles = {
   actions: {
@@ -15,12 +15,6 @@ const styles = {
 };
 
 const NO_OF_PERIODS = 5;
-
-type Props = {
-  classes: any,
-  date: string,
-  on_select: ({ period?: string, interest?: number }) => void,
-};
 
 type State = {
   date: string,
@@ -85,7 +79,7 @@ class BillingPeriodDialog extends Component<Props, State> {
 }
 const BillingPeriodDialogStyled = injectSheet(styles)(BillingPeriodDialog);
 
-export default function(node: HTMLDivElement, props: BillingPeriodListProps) {
+export default function(node: HTMLDivElement, props: Props) {
   render(<BillingPeriodDialogStyled {...props} />, node);
   logger('BillingPeriodDialog mounted');
 }
