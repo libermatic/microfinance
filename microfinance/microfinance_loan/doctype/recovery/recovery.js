@@ -111,10 +111,8 @@ frappe.ui.form.on('Recovery', {
       ]);
       if (message) {
         frm.set_value('customer', message['customer']);
-        frm.set_df_property('edit_interest', 'hidden', 0);
       } else {
         frm.set_value('customer', null);
-        frm.set_df_property('edit_interest', 'hidden', 1);
       }
     } catch (e) {
       frappe.throw(e.toString());
@@ -133,13 +131,6 @@ frappe.ui.form.on('Recovery', {
   },
   principal: calculate_amount,
   interest: calculate_amount,
-  edit_interest: function(frm) {
-    if (frm.doc['edit_interest']) {
-      frm.set_df_property('interest', 'read_only', 0);
-    } else {
-      frm.set_df_property('interest', 'read_only', 1);
-    }
-  },
   amount: calculate_total,
   select_interval: function(frm) {
     if (frm.doc['loan']) {
@@ -148,10 +139,64 @@ frappe.ui.form.on('Recovery', {
         on_select: ({ period, interest }) => {
           frm.set_value('billing_period', period);
           frm.set_value('interest', interest);
-          frm.set_value('edit_interest', false);
         },
       });
       dialog.show();
+    }
+  },
+  make_interest_editable: function(frm) {
+    if (frm.doc['edit_interest']) {
+      frm.set_value('edit_interest', false);
+    } else {
+      frappe.prompt(
+        [
+          {
+            fieldname: 'ht',
+            fieldtype: 'HTML',
+            read_only: 1,
+            options:
+              '<p><strong class="text-danger">Danger!</strong> Please do not use this feature unless it is absolutely necessary.</p>',
+          },
+          {
+            fieldname: 'user',
+            fieldtype: 'Data',
+            label: 'User',
+            reqd: 1,
+          },
+          {
+            fieldname: 'loan',
+            fieldtype: 'Data',
+            label: 'Loan No',
+            reqd: 1,
+          },
+        ],
+        function({ user, loan }) {
+          if (user === frappe.session.user && loan === frm.doc['loan']) {
+            frm.set_value('edit_interest', true);
+          } else {
+            frappe.msgprint('Cannot comply with request.');
+          }
+        },
+        'Change Interest Amount',
+        'Okay'
+      );
+    }
+  },
+  edit_interest: function(frm) {
+    if (frm.doc['edit_interest']) {
+      frm.set_df_property('interest', 'read_only', 0);
+      frm.set_df_property(
+        'make_interest_editable',
+        'label',
+        'Set Interest Read Only'
+      );
+    } else {
+      frm.set_df_property('interest', 'read_only', 1);
+      frm.set_df_property(
+        'make_interest_editable',
+        'label',
+        'Make Interest Editable'
+      );
     }
   },
   mode_of_payment: async function(frm) {
