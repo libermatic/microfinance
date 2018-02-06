@@ -76,7 +76,7 @@ def execute(filters=None):
 				sum(debit) as debit,
 				sum(credit - debit) AS amount,
 				remarks
-			FROM `tabGL Entry` AS remarks
+			FROM `tabGL Entry`
 			WHERE {conds}
 			AND posting_date BETWEEN '{from_date}' AND '{to_date}'
 			GROUP BY voucher_type, voucher_no, account, remarks
