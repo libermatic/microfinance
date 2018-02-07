@@ -8,7 +8,7 @@ function reset_chart(frm) {
 
 async function render_chart(frm) {
   const chart_area = frm.$wrapper.find('.form-graph');
-  chart_area.empty().removeClass('hidden');
+  chart_area.empty();
   const { message: data } = await frappe.call({
     method:
       'microfinance.microfinance_loan.doctype.loan.loan_dashboard.get_loan_chart_data',
@@ -16,11 +16,12 @@ async function render_chart(frm) {
   });
   if (data) {
     const chart = new Chart({
-      parent: chart_area.selector,
+      parent: chart_area[0],
       type: 'percentage',
       data,
       colors: ['green', 'orange', 'blue', 'grey'],
     });
+    chart_area.removeClass('hidden');
     $(chart.container)
       .find('.title')
       .addClass('hidden');
