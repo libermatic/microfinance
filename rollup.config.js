@@ -18,7 +18,7 @@ const commonjsGotchas = {
 };
 
 const browser = {
-  input: 'src/index.js',
+  input: pkg.entry,
   output: [
     { file: pkg.frappe, name: pkg.name, format: 'iife', sourcemap: true },
   ],
@@ -42,12 +42,11 @@ if (NODE_ENV === '"production"') {
   browser.plugins.push(uglify());
   const bundles = Object.assign({}, browser, {
     output: [
-      { file: pkg.main, name: pkg.name, format: 'cjs', sourcemap: false },
-      { file: pkg.module, name: pkg.name, format: 'es', sourcemap: false },
+      { file: pkg.main, name: pkg.name, format: 'es', sourcemap: false },
     ],
     plugins: [
       resolve({ browser: true }),
-      babel({ exclude: 'node_modules/**' }),
+      babel({ exclude: 'node_modules/**', runtimeHelpers: true }),
       commonjs(commonjsGotchas),
     ],
   });
