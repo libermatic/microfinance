@@ -1,5 +1,13 @@
 import type Moment from './npm/moment_v2.x.x';
 
+declare class FieldGroup {
+  constructor({ fields: Array<any>, parent: ?HTMLElement }): void;
+  fields_list: Array<any>;
+  set_value(key: string, value: mixed): void;
+  get_value(kye: string): mixed;
+  make(): void;
+}
+
 declare var frappe: {
   call: ({ method: string, args?: any }) => { message: any },
   throw: (msg: string) => void,
@@ -11,6 +19,7 @@ declare var frappe: {
   defaults: {
     get_default: (key: string) => string,
   },
+  ui: { FieldGroup: typeof FieldGroup }
 }
 
 declare function format_currency(
