@@ -6,6 +6,7 @@ import frappe
 from frappe.utils import flt, add_months, add_days, getdate, today
 from microfinance.microfinance_loan.utils import get_billing_date, month_diff
 
+@frappe.whitelist()
 def execute(income, loan_plan, end_date, execution_date=today()):
     '''
         Return a dict containing the maximum allowed principal along with the
@@ -22,7 +23,7 @@ def execute(income, loan_plan, end_date, execution_date=today()):
         frappe.throw('Missing values in Loan Plan', ValueError)
 
     income_portion = flt(plan.income_multiple) / flt(plan.max_duration)
-    recovery_amount = income * income_portion
+    recovery_amount = flt(income) * income_portion
     duration = plan.max_duration
 
 
