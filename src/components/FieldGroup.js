@@ -2,10 +2,15 @@
 import React, { Component } from 'react';
 import snakeCase from 'lodash/snakeCase';
 
-import type { FieldType, FieldNode } from './Field';
+import type { Element } from 'React';
+
+import Field from './Field';
+import type { FieldType } from './Field';
+
+type FieldGroupChildren = Array<Element<typeof Field>>;
 
 type Props = {
-  children: Array<FieldNode>,
+  children: FieldGroupChildren,
   onChange: any => void,
 };
 
@@ -49,7 +54,7 @@ class FieldGroup extends Component<Props, {}> {
     return keys;
   };
   getFieldValues = (
-    children: Array<FieldNode>
+    children: FieldGroupChildren
   ): Array<{ fieldname: ?string, value: ?mixed }> =>
     children.map(({ props }) => {
       const { fieldname, value } = this.makeField(props);
