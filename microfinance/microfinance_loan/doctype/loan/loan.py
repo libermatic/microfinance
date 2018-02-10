@@ -5,17 +5,93 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils import flt
-from frappe.utils.data import getdate, today, date_diff, add_days, add_months
+from frappe.utils.data \
+	import getdate, today, date_diff, add_days, add_months, fmt_money
 from erpnext.controllers.accounts_controller import AccountsController
 from frappe.contacts.doctype.address.address import get_default_address
 from erpnext.accounts.general_ledger import make_gl_entries
 import math
 from datetime import date
+from functools import reduce
 
 from microfinance.microfinance_loan.doctype.loan.loan_utils \
 	import get_interval, get_periods
 
+from microfinance.microfinance_loan.api.calculate_principal_and_duration \
+	import execute as calculate_principal_and_duration
+
 class Loan(AccountsController):
+	def fmt_money(self, amount):
+		return fmt_money(
+				amount,
+				precision=0,
+				currency=frappe.defaults.get_user_default('currency')
+			)
+	def validate(self):
+		if self.stipulated_recovery_amount > self.loan_principal:
+			frappe.throw("Recovery Amount cannot exceed Principal.")
+
+		date_of_retirement, net_salary_amount = frappe.get_value(
+				'Loanee Details',
+				{ 'customer': self.customer },
+				['date_of_retirement', 'net_salary_amount']
+			)
+		income_multiple, max_duration = frappe.get_value(
+				'Loan Plan',
+				self.loan_plan,
+				['income_multiple', 'max_duration']
+			)
+		check = calculate_principal_and_duration(
+				income=net_salary_amount,
+				loan_plan={
+						'income_multiple': income_multiple,
+						'max_duration': max_duration,
+						'billing_day': getdate(self.billing_date).day,
+						'rate_of_interest': self.rate_of_interest,
+					},
+				end_date=date_of_retirement,
+				execution_date=self.posting_date
+			)
+		if self.stipulated_recovery_amount < flt(check.get('recovery_amount')):
+			frappe.throw(
+					"Recovery Amount can be less than {}."
+						.format(self.fmt_money(check.get('recovery_amount')))
+				)
+		if self.loan_principal > flt(check.get('principal')):
+			frappe.throw(
+					"Requested principal cannot exceed {}."
+						.format(self.fmt_money(check.get('principal')))
+				)
+
+		# possible heavy db queries ahead so check for outstanding is positioned
+		# last
+		outstanding_principal = reduce(
+				(
+					lambda a, x:
+						a + get_outstanding_principal(x.name, self.posting_date)
+				),
+				frappe.get_all(
+						'Loan',
+						filters={
+								'customer': self.customer,
+								'docstatus': 1,
+								'recovery_status': ('in', 'Not Started, In Progress'),
+							}
+					),
+				0
+			)
+		if self.loan_principal + outstanding_principal > flt(check.get('principal')):
+			frappe.throw(
+					"""
+						Customer has existing loans of outstanding {}.
+						Total principal should not exceed allowable principal {}.
+					""".format(
+							self.fmt_money(outstanding_principal),
+							self.fmt_money(check.get('principal'))
+						)
+				)
+
+
 	def before_submit(self):
 		self.disbursement_status = 'Sanctioned'
 		self.recovery_status = 'Not Started'

@@ -40,16 +40,6 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Tools"),
-			"items": [
-				{
-					"type": "page",
-					"name": "calculate_principal",
-					"label": _("Calculate Loan Principal")
-				}
-			]
-		},
-		{
 			"label": _("Reports"),
 			"items": [
 				{
@@ -101,6 +91,16 @@ def get_data():
 					"name": "Loan Settings",
 					"description": _("Global loan configuration"),
 				},
+			]
+		},
+		{
+			"label": _("Tools"),
+			"items": [
+				{
+					"type": "page",
+					"name": "calculate_principal",
+					"label": _("Calculate Loan Principal")
+				}
 			]
 		},
 	]
