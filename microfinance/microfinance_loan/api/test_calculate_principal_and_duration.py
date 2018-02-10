@@ -6,10 +6,9 @@ from __future__ import unicode_literals
 import unittest
 import frappe
 
-from microfinance.microfinance_loan.api \
-    import calculate_principal_and_duration
+from microfinance.microfinance_loan.api.calculate_principal_and_duration \
+    import execute as calculate_principal_and_duration
 
-from pprint import pprint
 test_dependencies = ['Loan Plan']
 
 class TestCalculatePrincipalAndDuration(unittest.TestCase):
@@ -29,6 +28,7 @@ class TestCalculatePrincipalAndDuration(unittest.TestCase):
                 'initial_interest': 24000.0,
             }
         self.assertEqual(actual, expected)
+
     def test_calculate_principal_and_duration_end_date_before_loan_plan_max_duration(self):
         '''
             Test calculate_principal_and_duration when the end_date is before
@@ -47,10 +47,40 @@ class TestCalculatePrincipalAndDuration(unittest.TestCase):
                 'initial_interest': 12400.0,
             }
         self.assertEqual(actual, expected)
+
     def test_calculate_principal_and_duration_raises_error(self):
         '''
             Test whether Loan Plan fields are missing
         '''
         params = (20000.0, '_Test Loan Plan 2', '2020-08-19')
+        with self.assertRaises(ValueError):
+            calculate_principal_and_duration(*params)
+
+    def test_calculate_principal_and_duration_when_plan_is_dict(self):
+        '''Test when loan_plan param is a dict'''
+        actual = calculate_principal_and_duration(
+                20000.0,
+                {
+                    'income_multiple': 24,
+                    'max_duration': 60,
+                    'billing_day': 5,
+                    'rate_of_interest': 5.0,
+                },
+                '2020-08-19',
+                '2017-12-12',
+            )
+        expected = {
+                'principal': 248000.0,
+                'expected_eta': '2020-08-04',
+                'recovery_amount': 8000.0,
+                'initial_interest': 12400.0,
+            }
+        self.assertEqual(actual, expected)
+
+    def test_calculate_principal_and_duration_raises_when_invalid_plan(self):
+        '''
+            Test whether Loan Plan is a string or dict
+        '''
+        params = (20000.0, 104, '2020-08-19')
         with self.assertRaises(ValueError):
             calculate_principal_and_duration(*params)

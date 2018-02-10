@@ -14,10 +14,16 @@ def execute(income, loan_plan, end_date, execution_date=today()):
 
         :param income: Renumeration received by the Customer
         :param loan_plan: Name of a Loan Plan
-        :param execution_date: Date on which the loan would start
         :param end_date: Maximum date on which the loan could end
+        :param execution_date: Date on which the loan would start
     '''
-    plan = frappe.get_doc('Loan Plan', loan_plan)
+
+    if isinstance(loan_plan, basestring):
+        plan = frappe.get_doc('Loan Plan', loan_plan)
+    elif isinstance(loan_plan, dict):
+        plan = frappe._dict(loan_plan)
+    else:
+        frappe.throw('Invalid Loan Plan format', ValueError)
 
     if not plan.income_multiple or not plan.max_duration or not plan.billing_day:
         frappe.throw('Missing values in Loan Plan', ValueError)
