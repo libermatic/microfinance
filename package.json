@@ -17,7 +17,10 @@
     "type": "git",
     "url": "git+https://github.com/libermatic/microfinance.git"
   },
-  "keywords": ["erpnext", "erpnext-customizations"],
+  "keywords": [
+    "erpnext",
+    "erpnext-customizations"
+  ],
   "author": "Libermatic <info@libermatic.com>",
   "license": "MIT",
   "bugs": {
@@ -48,7 +51,9 @@
     "rollup-watch": "^4.3.1"
   },
   "dependencies": {
+    "classnames": "^2.2.5",
     "debug": "^3.1.0",
+    "lodash": "^4.17.5",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-jss": "^8.2.1"
