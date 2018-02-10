@@ -5,4 +5,5 @@ frappe.pages['calculate_principal'].on_page_load = async function(wrapper) {
     single_column: true,
   });
   microfinance.CalculatePrincipal(page.main[0]);
+  frappe.breadcrumbs.add('Microfinance Loan');
 };
