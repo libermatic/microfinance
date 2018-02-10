@@ -1,6 +1,19 @@
 // Copyright (c) 2017, Libermatic and contributors
 // For license information, please see license.txt
 
+function set_max_duration_unit(frm) {
+  const unit_map = {
+    Daily: 'Day',
+    Weekly: 'Week',
+    Monthly: 'Month',
+    Yearly: 'Year',
+  };
+  const { recovery_frequency, max_duration } = frm.doc;
+  if (recovery_frequency && max_duration) {
+    frm.set_value('max_duration_unit', unit_map[recovery_frequency]);
+  }
+}
+
 frappe.ui.form.on('Loan Plan', {
   validate: function(frm) {
     if (frm.doc['recovery_frequency'] === 'Monthly') {
@@ -21,5 +34,7 @@ frappe.ui.form.on('Loan Plan', {
     } else if (recovery_frequency === 'Monthly') {
       frm.set_df_property('billing_day', 'reqd', 1);
     }
+    set_max_duration_unit(frm);
   },
+  max_duration: set_max_duration_unit,
 });

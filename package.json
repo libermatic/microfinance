@@ -1,0 +1,61 @@
+{
+  "name": "microfinance",
+  "version": "0.0.7",
+  "description": "Microfinance management",
+  "entry": "src/index.js",
+  "main": "lib/microfinance.esm.js",
+  "browser": "lib/microfinance.iife.js",
+  "frappe": "microfinance/public/js/microfinance.iife.js",
+  "scripts": {
+    "watch": "rollup -c --watch",
+    "build": "NODE_ENV=production rollup -c",
+    "reload": "livereload 'microfinance/public/' -d > /dev/null 2>&1",
+    "start": "npm-run-all --parallel reload watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/libermatic/microfinance.git"
+  },
+  "keywords": [
+    "erpnext",
+    "erpnext-customizations"
+  ],
+  "author": "Libermatic <info@libermatic.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/libermatic/microfinance/issues"
+  },
+  "homepage": "https://github.com/libermatic/microfinance#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.2.1",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-flow": "^6.23.0",
+    "babel-preset-react": "^6.24.1",
+    "eslint": "^4.17.0",
+    "eslint-plugin-react": "^7.6.1",
+    "flow-bin": "^0.64.0",
+    "livereload": "^0.6.3",
+    "npm-run-all": "^4.1.2",
+    "rollup": "^0.55.3",
+    "rollup-plugin-babel": "^3.0.3",
+    "rollup-plugin-commonjs": "^8.3.0",
+    "rollup-plugin-node-resolve": "^3.0.2",
+    "rollup-plugin-replace": "^2.0.0",
+    "rollup-plugin-uglify": "^3.0.0",
+    "rollup-watch": "^4.3.1"
+  },
+  "dependencies": {
+    "classnames": "^2.2.5",
+    "debug": "^3.1.0",
+    "lodash": "^4.17.5",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-jss": "^8.2.1"
+  }
+}

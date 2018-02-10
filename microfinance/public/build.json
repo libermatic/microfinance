@@ -1,4 +1,0 @@
-{
-  "css/microfinance.css": ["public/css/layout.css", "public/css/customer.css"],
-  "js/microfinance.js": ["public/js/loanee_details.html"]
-}

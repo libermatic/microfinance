@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Customer', {
   refresh: async function(frm) {
-    const { message: data } = await frappe.db.get_value(
+    const { message } = await frappe.db.get_value(
       'Loanee Details',
       { customer: frm.doc['name'] },
       [
@@ -17,12 +17,18 @@ frappe.ui.form.on('Customer', {
       ]
     );
     if (frm.fields_dict['loanee_details_html']) {
-      $(frm.fields_dict['loanee_details_html'].wrapper)
-        .html(frappe.render_template('loanee_details', data))
-        .find('.btn-loanee_details')
-        .on('click', function() {
-          frappe.new_doc('Loanee Details', { customer: frm.doc['name'] });
-        });
+      microfinance.LoaneeDetails(
+        frm.fields_dict['loanee_details_html'].wrapper,
+        {
+          ...message,
+          on_add: function() {
+            frappe.new_doc('Loanee Details', { customer: frm.doc['name'] });
+          },
+          on_edit: function() {
+            frappe.set_route('Form', 'Loanee Details', message['name']);
+          },
+        }
+      );
     }
   },
 });
