@@ -11,6 +11,7 @@
     "build": "NODE_ENV=production rollup -c",
     "reload": "livereload 'microfinance/public/' -d > /dev/null 2>&1",
     "start": "npm-run-all --parallel reload watch",
+    "version": "sed -i \"s/__version__.*/__version__ = '$npm_package_version'/\" microfinance/__init__.py && git add -A microfinance/__init__.py",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
