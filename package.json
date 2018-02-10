@@ -1,6 +1,6 @@
 {
   "name": "microfinance",
-  "version": "0.0.7",
+  "version": "0.1.0",
   "description": "Microfinance management",
   "entry": "src/index.js",
   "main": "lib/microfinance.esm.js",
