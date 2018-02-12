@@ -52,15 +52,15 @@ class Loan(AccountsController):
 				end_date=date_of_retirement,
 				execution_date=self.posting_date
 			)
-		if self.stipulated_recovery_amount < flt(check.get('recovery_amount')):
-			frappe.throw(
-					"Recovery Amount can be less than {}."
-						.format(self.fmt_money(check.get('recovery_amount')))
-				)
 		if self.loan_principal > flt(check.get('principal')):
 			frappe.throw(
 					"Requested principal cannot exceed {}."
 						.format(self.fmt_money(check.get('principal')))
+				)
+		if self.stipulated_recovery_amount < self.loan_principal / check.get('duration'):
+			frappe.throw(
+					"Recovery Amount can be less than {}."
+						.format(self.fmt_money(self.loan_principal / check.get('duration')))
 				)
 
 		# possible heavy db queries ahead so check for outstanding is positioned
@@ -90,7 +90,7 @@ class Loan(AccountsController):
 							self.fmt_money(check.get('principal'))
 						)
 				)
-
+		self.expected_end_date = check.get('expected_eta')
 
 	def before_submit(self):
 		self.disbursement_status = 'Sanctioned'
