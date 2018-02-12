@@ -45,6 +45,7 @@ def execute(income, loan_plan, end_date, execution_date=today()):
     return {
             'principal': principal,
             'expected_eta': add_days(expected_eta, -1),
+            'duration': duration,
             'recovery_amount': recovery_amount,
             'initial_interest': principal * plan.rate_of_interest / 100,
         }

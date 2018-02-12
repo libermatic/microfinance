@@ -24,6 +24,7 @@ class TestCalculatePrincipalAndDuration(unittest.TestCase):
         expected = {
                 'principal': 480000.0,
                 'expected_eta': '2023-01-04',
+                'duration': 60,
                 'recovery_amount': 8000.0,
                 'initial_interest': 24000.0,
             }
@@ -43,6 +44,7 @@ class TestCalculatePrincipalAndDuration(unittest.TestCase):
         expected = {
                 'principal': 248000.0,
                 'expected_eta': '2020-08-04',
+                'duration': 31,
                 'recovery_amount': 8000.0,
                 'initial_interest': 12400.0,
             }
@@ -72,6 +74,7 @@ class TestCalculatePrincipalAndDuration(unittest.TestCase):
         expected = {
                 'principal': 248000.0,
                 'expected_eta': '2020-08-04',
+                'duration': 31,
                 'recovery_amount': 8000.0,
                 'initial_interest': 12400.0,
             }
