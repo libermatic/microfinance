@@ -46,7 +46,7 @@ class TestCalculatePrincipalAndDuration(unittest.TestCase):
                 'expected_eta': '2020-08-04',
                 'duration': 31,
                 'recovery_amount': 8000.0,
-                'initial_interest': 12400.0,
+                'initial_interest': 12500.0,
             }
         self.assertEqual(actual, expected)
 
@@ -82,7 +82,7 @@ class TestCalculatePrincipalAndDuration(unittest.TestCase):
 
     def test_calculate_principal_and_duration_raises_when_invalid_plan(self):
         '''
-            Test whether Loan Plan is a string or dict
+            Test for invalid Loan Plan dict
         '''
         params = (20000.0, 104, '2020-08-19')
         with self.assertRaises(ValueError):

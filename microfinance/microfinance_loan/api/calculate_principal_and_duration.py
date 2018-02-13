@@ -4,7 +4,8 @@
 
 import frappe
 from frappe.utils import flt, add_months, add_days, getdate, today
-from microfinance.microfinance_loan.utils import get_billing_date, month_diff
+from microfinance.microfinance_loan.utils \
+    import get_billing_date, month_diff, interest
 
 @frappe.whitelist()
 def execute(income, loan_plan, end_date, execution_date=today()):
@@ -47,5 +48,5 @@ def execute(income, loan_plan, end_date, execution_date=today()):
             'expected_eta': add_days(expected_eta, -1),
             'duration': duration,
             'recovery_amount': recovery_amount,
-            'initial_interest': principal * plan.rate_of_interest / 100,
+            'initial_interest': interest(principal, plan.rate_of_interest, plan.calculation_slab),
         }
