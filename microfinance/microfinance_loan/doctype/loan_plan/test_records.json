@@ -2,24 +2,41 @@
   {
     "doctype": "Loan Plan",
     "loan_name": "_Test Loan Plan 1",
-    "income_multiple": 24,
-    "maximum_loan_amount": 1000000.0,
     "recovery_frequency": "Monthly",
     "billing_day": 5,
     "rate_of_interest": 5.0,
     "calculation_slab": 10000.0,
     "rate_of_late_charges": 10.0,
+    "date_effective_from": "2017-12-01",
+    "income_multiple": 24,
+    "maximum_loan_amount": 1000000.0,
     "max_duration": 60,
-    "max_duration_unit": "Month"
+    "max_duration_unit": "Month",
+    "force_duration": 0
   },
   {
     "doctype": "Loan Plan",
     "loan_name": "_Test Loan Plan 2",
-    "maximum_loan_amount": 1000000.0,
     "recovery_frequency": "Monthly",
     "billing_day": 5,
     "rate_of_interest": 5.0,
     "calculation_slab": 10000.0,
-    "rate_of_late_charges": 10.0
+    "rate_of_late_charges": 10.0,
+    "maximum_loan_amount": 1000000.0
+  },
+  {
+    "doctype": "Loan Plan",
+    "loan_name": "_Test Loan Plan 3",
+    "recovery_frequency": "Monthly",
+    "billing_day": 5,
+    "rate_of_interest": 5.0,
+    "calculation_slab": 10000.0,
+    "rate_of_late_charges": 10.0,
+    "date_effective_from": "2017-12-01",
+    "income_multiple": 24,
+    "maximum_loan_amount": 1000000.0,
+    "max_duration": 60,
+    "max_duration_unit": "Month",
+    "force_duration": 1
   }
 ]

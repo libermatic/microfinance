@@ -50,6 +50,26 @@ class TestCalculatePrincipalAndDuration(unittest.TestCase):
             }
         self.assertEqual(actual, expected)
 
+    def test_calculate_principal_force_duration(self):
+        '''
+            Test calculate_principal_and_duration when the end_date is ignored
+            in Loan Plan.
+        '''
+        actual = calculate_principal_and_duration(
+                20000.0,
+                '_Test Loan Plan 3',
+                '2020-08-19',
+                '2017-12-12',
+            )
+        expected = {
+                'principal': 480000.0,
+                'expected_eta': '2023-01-04',
+                'duration': 60,
+                'recovery_amount': 8000.0,
+                'initial_interest': 24000.0,
+            }
+        self.assertEqual(actual, expected)
+
     def test_calculate_principal_and_duration_raises_error(self):
         '''
             Test whether Loan Plan fields are missing

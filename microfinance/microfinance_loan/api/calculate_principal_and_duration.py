@@ -37,7 +37,7 @@ def execute(income, loan_plan, end_date, execution_date=today()):
     billing_start_date = get_billing_date(execution_date, plan.billing_day)
     expected_eta = add_months(billing_start_date, plan.max_duration)
 
-    if getdate(end_date) <= getdate(expected_eta):
+    if not plan.force_duration and getdate(end_date) <= getdate(expected_eta):
         duration = month_diff(end_date, billing_start_date)
         expected_eta = add_months(get_billing_date(end_date, plan.billing_day), -1)
 
