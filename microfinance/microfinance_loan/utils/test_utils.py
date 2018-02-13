@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 import unittest
 import frappe
 
-from microfinance.microfinance_loan.utils import get_billing_date, month_diff
+from microfinance.microfinance_loan.utils \
+    import get_billing_date, month_diff, interest
 
 class TestUtils(unittest.TestCase):
 
@@ -45,4 +46,20 @@ class TestUtils(unittest.TestCase):
         '''Test month_diff when the other day is Feb 29'''
         actual = month_diff('2020-02-29', '2018-02-28')
         expected = 24
+        self.assertEqual(actual, expected)
+
+    def test_interest(self):
+        '''Test interest default case'''
+        actual = interest(92000)
+        expected = 0
+        self.assertEqual(actual, expected)
+    def test_interest_with_rate(self):
+        '''Test interest with rate'''
+        actual = interest(92000, 5)
+        expected = 4600
+        self.assertEqual(actual, expected)
+    def test_interest_with_slab(self):
+        '''Test interest with slab'''
+        actual = interest(92000, 5, 10000)
+        expected = 5000
         self.assertEqual(actual, expected)
