@@ -80,7 +80,7 @@ def execute(filters=None):
 			WHERE {conds}
 			AND posting_date BETWEEN '{from_date}' AND '{to_date}'
 			GROUP BY voucher_type, voucher_no, account, remarks
-			ORDER BY name
+			ORDER BY posting_date
 		""".format(
 				conds=" AND ".join(conds),
 				from_date=from_date,
