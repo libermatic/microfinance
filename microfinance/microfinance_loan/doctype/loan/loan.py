@@ -28,6 +28,9 @@ class Loan(AccountsController):
 				currency=frappe.defaults.get_user_default('currency')
 			)
 	def validate(self):
+		effective_date = frappe.get_value('Loan Plan', self.loan_plan, 'date_effective_from')
+		if effective_date and effective_date > getdate(self.posting_date):
+			return None
 		if self.stipulated_recovery_amount > self.loan_principal:
 			frappe.throw("Recovery Amount cannot exceed Principal.")
 
