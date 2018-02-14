@@ -1,0 +1,26 @@
+[
+  {
+    "doctype": "Account",
+    "account_name": "Microfinace Loan",
+    "company": "_Test Company",
+    "parent_account": "Loans and Advances (Assets) - _TC",
+    "report_type": "Balance Sheet",
+    "root_type": "Asset"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "Interests Receivable",
+    "company": "_Test Company",
+    "parent_account": "Accounts Receivable - _TC",
+    "report_type": "Balance Sheet",
+    "root_type": "Asset"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "Interests on Loans",
+    "company": "_Test Company",
+    "parent_account": "Indirect Income - _TC",
+    "report_type": "Profit and Loss",
+    "root_type": "Income"
+  }
+]

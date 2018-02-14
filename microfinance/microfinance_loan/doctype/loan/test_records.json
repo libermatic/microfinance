@@ -1,0 +1,19 @@
+[
+  {
+    "doctype": "Loan",
+    "docstatus": 1,
+    "loan_no": "_Test Loan",
+    "customer": "_Test Customer",
+    "posting_date": "2017-08-19",
+    "loan_plan": "_Test Loan Plan 1",
+    "loan_principal": 100000.0,
+    "stipulated_recovery_amount": 2000.0,
+    "rate_of_interest": 5,
+    "rate_of_late_charges": 10,
+    "calculation_slab": 10000.0,
+    "billing_date": "2017-09-05",
+    "loan_account": "Microfinace Loan - _TC",
+    "interest_income_account": "Interests on Loans - _TC",
+    "interest_receivable_account": "Interests Receivable - _TC"
+  }
+]
