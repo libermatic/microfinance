@@ -19,7 +19,7 @@ def month_diff(d1, d2):
     r = relativedelta(getdate(d1), getdate(d2))
     return r.years * 12 + r.months
 
-def interest(amount, rate=0, slab=0):
+def interest(amount, rate=0.0, slab=0.0):
     '''
         Return slabbed interest
 
@@ -29,4 +29,4 @@ def interest(amount, rate=0, slab=0):
     '''
     if slab:
         return (math.ceil(flt(amount) / slab) * slab) * rate / 100.0
-    return amount * rate / 100.0
+    return amount * flt(rate) / 100.0
