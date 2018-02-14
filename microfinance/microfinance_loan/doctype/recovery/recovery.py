@@ -63,7 +63,8 @@ class Recovery(AccountsController):
 			""".format(self.interest_receivable_account, self.loan, self.billing_period))[0][0] or 0
 		if self.billing_period:
 			start_date, end_date = self.billing_period.split(' - ')
-			interest = self.interest if self.edit_interest else get_interest(self.loan, start_date, end_date)
+			# interest = self.interest if self.edit_interest else get_interest(self.loan, start_date, end_date)
+			interest = get_interest(self.loan, start_date, end_date)
 			return interest - flt(unbilled)
 		return 0
 
