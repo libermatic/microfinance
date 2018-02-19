@@ -138,14 +138,16 @@ class Disbursement(AccountsController):
             )
         undisbursed_principal = get_undisbursed_principal(self.loan)
         loan = frappe.get_doc('Loan', self.loan)
-        if undisbursed_principal <= loan_principal:
-            if undisbursed_principal == loan_principal \
-                    and disbursement_status != 'Sanctioned':
-                loan.disbursement_status = 'Sanctioned'
-            elif undisbursed_principal > 0 \
-                    and disbursement_status != 'Partially Disbursed':
+        if loan_principal > undisbursed_principal > 0:
+            if not disbursement_status == 'Partially Disbursed':
                 loan.disbursement_status = 'Partially Disbursed'
-            else:
+                loan.save()
+        elif loan_principal == undisbursed_principal:
+            if not disbursement_status == 'Sanctioned':
+                loan.disbursement_status = 'Sanctioned'
+                loan.save()
+        elif undisbursed_principal == 0:
+            if not disbursement_status == 'Fully Disbursed':
                 loan.disbursement_status = 'Fully Disbursed'
-            return loan.save()
+                loan.save()
         return loan.name
