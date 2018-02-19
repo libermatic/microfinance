@@ -6,6 +6,7 @@ from frappe.utils import getdate, add_months, get_datetime_str, flt
 from dateutil.relativedelta import relativedelta
 import math
 
+
 def get_billing_date(current_date, billing_day=1):
     '''Return the next billing date from current_date'''
     date_obj = getdate(current_date)
@@ -14,10 +15,12 @@ def get_billing_date(current_date, billing_day=1):
         billing_date = add_months(billing_date, 1)
     return get_datetime_str(billing_date).split(' ')[0]
 
+
 def month_diff(d1, d2):
     '''Return d1 - d2 in months without the days portion'''
     r = relativedelta(getdate(d1), getdate(d2))
     return r.years * 12 + r.months
+
 
 def interest(amount, rate=0.0, slab=0.0):
     '''
