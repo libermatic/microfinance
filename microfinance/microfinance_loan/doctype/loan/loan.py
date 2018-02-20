@@ -15,7 +15,7 @@ from datetime import date
 from functools import reduce
 
 from microfinance.microfinance_loan.doctype.loan.loan_utils \
-    import get_periods
+    import get_periods, paid_interest
 
 from microfinance.microfinance_loan.api.calculate_principal_and_duration \
     import execute as calculate_principal_and_duration
@@ -385,31 +385,7 @@ def get_interest(loan=None, start_date=today(), end_date=today()):
         return None
 
     period = '{} - {}'.format(start_date, end_date)
-    interest_receivable_account = frappe.get_value(
-            'Loan',
-            loan,
-            'interest_receivable_account'
-        )
-
-    conds = [
-            "account = '{}'".format(interest_receivable_account),
-            "period = '{}'".format(period),
-            "against_voucher_type = 'Loan'",
-            "against_voucher = '{}'".format(loan),
-        ]
-
-    owed_amount, paid_amount = frappe.db.sql("""
-            SELECT
-                sum(debit) AS owed_amount,
-                sum(credit) AS paid_amount
-            FROM `tabGL Entry`
-            WHERE {}
-        """.format(" AND ".join(conds)))[0]
-
-    if owed_amount:
-        return owed_amount - paid_amount
-
-    interest = 0
+    paid_amount = paid_interest(loan, period)
     principal = get_outstanding_principal(loan, end_date)
     rate, slab = frappe.get_value(
         'Loan',
@@ -418,9 +394,9 @@ def get_interest(loan=None, start_date=today(), end_date=today()):
     )
     if slab:
         principal = math.ceil(principal / slab) * slab
-        interest = principal * rate / 100.0
+    interest = principal * rate / 100.0
 
-    return interest if interest > 0 else 0
+    return interest - paid_amount
 
 
 @frappe.whitelist()
