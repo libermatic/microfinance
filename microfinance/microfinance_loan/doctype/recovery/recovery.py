@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import flt, today
+from frappe.utils import flt, today, add_days
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 from frappe.utils.data import fmt_money
@@ -13,6 +13,8 @@ from frappe.utils.data import fmt_money
 from microfinance.microfinance_loan.doctype.loan.loan \
     import get_outstanding_principal, get_interest
 
+from microfinance.microfinance_loan.doctype.loan.loan_utils \
+    import billed_interest
 
 class Recovery(AccountsController):
     def validate(self):
@@ -62,26 +64,19 @@ class Recovery(AccountsController):
         return super(Recovery, self).get_gl_dict(gl_dict)
 
     def get_unbilled(self):
-        unbilled = frappe.db.sql("""
-                SELECT sum(debit - credit)
-                FROM `tabGL Entry`
-                WHERE account = '{0}'
-                AND against_voucher_type = 'Loan'
-                AND against_voucher = '{1}'
-                AND period = '{2}'
-            """.format(
-                self.interest_receivable_account,
-                self.loan,
-                self.billing_period)
-            )[0][0] or 0
-        if self.billing_period:
-            start_date, end_date = self.billing_period.split(' - ')
-            # interest = self.interest \
-            #     if self.edit_interest \
-            #     else get_interest(self.loan, start_date, end_date)
-            interest = get_interest(self.loan, start_date, end_date)
-            return interest - flt(unbilled)
-        return 0
+        start_date, end_date = self.billing_period.split(' - ')
+        actual = get_interest(
+            self.loan,
+            end_date=add_days(end_date, 1),
+            actual=True
+        )
+        billed = billed_interest(self.loan, self.billing_period)
+        unbilled = 0.0
+        if actual > billed:
+            unbilled = unbilled + actual - billed
+        if self.interest > actual:
+            unbilled = unbilled + self.interest - actual
+        return unbilled
 
     def add_billing_gl_entries(self, gl_entries, unbilled):
         gl_entries.append(
