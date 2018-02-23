@@ -87,6 +87,26 @@ def billed_interest(loan, period):
     """.format(" AND ".join(conds)))[0][0] or 0
 
 
+def converted_interest(loan, period):
+    interest_receivable_account, loan_account = frappe.get_value(
+            'Loan',
+            loan,
+            ['interest_receivable_account', 'loan_account']
+        )
+
+    conds = [
+            "account = '{}'".format(interest_receivable_account),
+            "against = '{}'".format(loan_account),
+            "period = '{}'".format(period),
+            "against_voucher_type = 'Loan'",
+            "against_voucher = '{}'".format(loan),
+        ]
+
+    return frappe.db.sql("""
+        SELECT sum(credit - debit) FROM `tabGL Entry` WHERE {}
+    """.format(" AND ".join(conds)))[0][0] or 0
+
+
 def get_disbursement_between(loan, period):
     start_date, end_date = period.split(' - ')
     loan_account = frappe.get_value(
