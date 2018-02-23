@@ -15,7 +15,7 @@ from datetime import date
 from functools import reduce
 
 from microfinance.microfinance_loan.doctype.loan.loan_utils \
-    import get_periods, paid_interest
+    import get_periods, paid_interest, billed_interest, converted_interest
 
 from microfinance.microfinance_loan.api.calculate_principal_and_duration \
     import execute as calculate_principal_and_duration
@@ -379,13 +379,11 @@ def get_wrote_off_principal(loan):
     return flt(wrote_off)
 
 
-def get_interest(loan=None, start_date=today(), end_date=today()):
+def get_interest(loan=None, start_date=today(), end_date=today(), actual=False):
     '''Get interest amount'''
     if not loan:
         return None
 
-    period = '{} - {}'.format(start_date, end_date)
-    paid_amount = paid_interest(loan, period)
     principal = get_outstanding_principal(loan, end_date)
     rate, slab = frappe.get_value(
         'Loan',
@@ -395,8 +393,17 @@ def get_interest(loan=None, start_date=today(), end_date=today()):
     if slab:
         principal = math.ceil(principal / slab) * slab
     interest = principal * rate / 100.0
+    if actual:
+        return interest
 
-    return interest - paid_amount
+    period = '{} - {}'.format(start_date, end_date)
+    billed_amount = billed_interest(loan, period)
+    paid_amount = paid_interest(loan, period)
+    converted = converted_interest(loan, period)
+
+    if interest > billed_amount:
+        return interest - paid_amount - converted
+    return billed_amount - paid_amount - converted
 
 
 @frappe.whitelist()
