@@ -38,9 +38,10 @@ class Recovery(AccountsController):
     def make_gl_entries(self, cancel=0, adv_adj=0):
         gl_entries = []
 
-        unbilled = self.get_unbilled()
-        if unbilled:
-            self.add_billing_gl_entries(gl_entries, unbilled)
+        if self.billing_period:
+            unbilled = self.get_unbilled()
+            if unbilled:
+                self.add_billing_gl_entries(gl_entries, unbilled)
         if self.interest:
             self.add_party_gl_entries(gl_entries)
         if self.principal:
