@@ -16,6 +16,7 @@ from microfinance.microfinance_loan.doctype.loan.loan \
 from microfinance.microfinance_loan.doctype.loan.loan_utils \
     import billed_interest
 
+
 class Recovery(AccountsController):
     def validate(self):
         outstanding_principal = get_outstanding_principal(
@@ -26,6 +27,10 @@ class Recovery(AccountsController):
                 "Cannot recover more that the outstanding principal: \
                     {}".format(outstanding_principal)
             ))
+
+    def before_save(self):
+        if not self.interest:
+            self.billing_period = None
 
     def on_submit(self):
         self.make_gl_entries()
