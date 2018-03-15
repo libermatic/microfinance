@@ -14,7 +14,7 @@ from microfinance.microfinance_loan.doctype.loan.loan \
     import get_outstanding_principal, get_interest
 
 from microfinance.microfinance_loan.doctype.loan.loan_utils \
-    import billed_interest
+    import billed_interest, converted_interest
 
 
 class Recovery(AccountsController):
@@ -27,6 +27,13 @@ class Recovery(AccountsController):
                 "Cannot recover more that the outstanding principal: \
                     {}".format(outstanding_principal)
             ))
+        if self.interest > 0:
+            converted = converted_interest(self.loan, self.billing_period)
+            if converted > 0:
+                frappe.throw(_(
+                    "Interest for period {} has already been converted to \
+                        principal".format(self.billing_period)
+                ))
 
     def before_save(self):
         if not self.interest:
