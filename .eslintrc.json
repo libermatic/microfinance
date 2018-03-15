@@ -9,7 +9,9 @@
     "frappe": true,
     "format_currency": true,
     "microfinance": true,
-    "moment": true
+    "moment": true,
+    "$": true,
+    "Chart": true
   },
   "extends": ["eslint:recommended", "plugin:react/recommended"],
   "parserOptions": {
