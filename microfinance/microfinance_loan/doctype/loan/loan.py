@@ -9,7 +9,7 @@ from frappe.utils.data \
     import getdate, today, date_diff, add_days, fmt_money
 from erpnext.controllers.accounts_controller import AccountsController
 from frappe.contacts.doctype.address.address import get_default_address
-from erpnext.accounts.general_ledger import make_gl_entries
+from erpnext.accounts.general_ledger import make_gl_entries, delete_gl_entries
 import math
 from datetime import date
 from functools import reduce
@@ -68,7 +68,8 @@ class Loan(AccountsController):
                     self.fmt_money(check.get('principal'))
                 )
             )
-        if self.stipulated_recovery_amount < self.loan_principal / check.get('duration'):
+        if self.stipulated_recovery_amount < \
+                self.loan_principal / check.get('duration'):
             frappe.throw(
                 "Recovery Amount can be less than {}.".format(
                     self.fmt_money(self.loan_principal / check.get('duration'))
@@ -80,7 +81,9 @@ class Loan(AccountsController):
         outstanding_principal = reduce(
                 (
                     lambda a, x:
-                        a + get_outstanding_principal(x.name, self.posting_date)
+                        a + get_outstanding_principal(
+                            x.name, self.posting_date
+                        )
                 ),
                 frappe.get_all(
                         'Loan',
@@ -95,16 +98,17 @@ class Loan(AccountsController):
                     ),
                 0
             )
-        if self.loan_principal + outstanding_principal > flt(check.get('principal')):
+        if self.loan_principal + outstanding_principal > \
+                flt(check.get('principal')):
             frappe.throw(
-                    """
-                        Customer has existing loans of outstanding {}.
-                        Total principal should not exceed allowable principal {}.
-                    """.format(
-                            self.fmt_money(outstanding_principal),
-                            self.fmt_money(check.get('principal'))
-                        )
-                )
+                """
+                    Customer has existing loans of outstanding {}.
+                    Total principal should not exceed allowable principal {}.
+                """.format(
+                        self.fmt_money(outstanding_principal),
+                        self.fmt_money(check.get('principal'))
+                    )
+            )
         self.expected_end_date = check.get('expected_eta')
 
     def before_submit(self):
@@ -121,9 +125,14 @@ class Loan(AccountsController):
             self.calculation_slab = application.calculation_slab
         if self.disbursement_status == 'Fully Disbursed':
             self.disbursement_status = 'Partially Disbursed'
-        if self.stipulated_recovery_amount != application.stipulated_recovery_amount:
-            self.stipulated_recovery_amount = application.stipulated_recovery_amount
+        if self.stipulated_recovery_amount != \
+                application.stipulated_recovery_amount:
+            self.stipulated_recovery_amount = \
+                application.stipulated_recovery_amount
         self.save()
+
+    def on_cancel(self):
+        delete_gl_entries(voucher_type=self.doctype, voucher_no=self.name)
 
     def get_gl_dict(self, args):
         gl_dict = frappe._dict({
@@ -284,7 +293,8 @@ class Loan(AccountsController):
 
         principal = get_outstanding_principal(self.name, posting_date)
         if self.calculation_slab:
-            principal = math.ceil(principal / self.calculation_slab) * self.calculation_slab
+            principal = math.ceil(principal / self.calculation_slab) * \
+                self.calculation_slab
         return principal * self.rate_of_interest / 100
 
 
