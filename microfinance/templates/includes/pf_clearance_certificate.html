@@ -15,7 +15,7 @@
   .print-format .cert-signature {
     margin-top: 8em;
     font-size: 1.2em;
-    display: {{ "flex" if cleared else "none" }};
+    display: flex;
     flex-flow: row nowrap;
     justify-content: space-between;
   }
@@ -40,6 +40,7 @@
 {%- endif -%}
 
 {% set cust_doc = frappe.get_doc("Customer", doc.customer) %}
+{% set department = frappe.db.get_value("Loanee Details", {"customer": doc.customer}, "department") %}
 
 {% set title = _("Clearance Certificate") if cleared else _("Pending Loan")%}
 <h2>{{ title }}</h2>
@@ -62,6 +63,10 @@
     of
     <strong>{{ doc.customer_address }}</strong>
     {% endif %}
+    {% if department %}
+    in the department of
+    <strong>{{ department }}</strong>
+    {% endif %}
     has liquidated
     {% if cust_doc.get("gender") == "Male" %}
     his
@@ -72,10 +77,10 @@
     {% endif %}
     <strong>{{ doc.loan_plan }}</strong>
     loan dues on
-    <strong>{{ frappe.utils.formatdate(doc.clear_date, "d MMMM, YYYY") }}</strong>
+    <strong>{{ frappe.utils.formatdate(doc.clear_date, "d MMMM, YYYY") or "[Not cleared]" }}</strong>
     that was sanctioned on
     <strong>{{ frappe.utils.formatdate(doc.posting_date, "d MMMM, YYYY") }}</strong>
-    (Ref No.
+    (Ref Loan No.
     <strong>{{ doc.name }}</strong>).
   </p>
 
