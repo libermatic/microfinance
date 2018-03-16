@@ -197,14 +197,15 @@ class Loan(AccountsController):
         return owed_amount
 
     def convert_interest_to_principal(self, posting_date, cancel=0, adv_adj=0):
-        periods = get_billing_periods(self.name, add_days(posting_date, -1), 1)
+        converted_posting_date = add_days(posting_date, -1)
+        periods = get_billing_periods(self.name, converted_posting_date, 1)
         if len(periods) != 1:
             return None
         amount = periods[0].get('interest')
         late_amount = amount * self.rate_of_late_charges / 100
         if amount:
             billing_period = periods[0].get('as_text')
-            self.posting_date = posting_date
+            self.posting_date = converted_posting_date
 
             # check whether entries to recvble are already present
             owed_amount = self.get_owed(billing_period)
