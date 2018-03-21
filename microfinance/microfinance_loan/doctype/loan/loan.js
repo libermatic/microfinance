@@ -85,6 +85,38 @@ frappe.ui.form.on('Loan', {
           loan: frm.doc['name'],
         });
       });
+      frm.page.add_menu_item(__('Convert Interests'), function(e) {
+        frappe.prompt(
+          [
+            {
+              fieldname: 'ht',
+              fieldtype: 'HTML',
+              read_only: 1,
+              options:
+                '<p><strong class="text-danger">Danger!</strong></p><p>This action cannot be undone. If there were any errors, this whole Loan and its subsequent Disbursements and Recoveries would have to be cancelled.</p>',
+            },
+            {
+              fieldname: 'till_date',
+              fieldtype: 'Date',
+              label: 'Till Date',
+              default: frappe.datetime.nowdate(),
+              reqd: 1,
+            },
+          ],
+          async function({ till_date }) {
+            await frappe.call({
+              method:
+                'microfinance.microfinance_loan.doctype.loan.loan.convert_all_interests_till',
+              args: { loan: frm.doc['name'], posting_date: till_date },
+            });
+            frappe.msgprint(
+              'All pending interests processed. Please check account statement'
+            );
+          },
+          'Convert Interests to Principal',
+          'Okay'
+        );
+      });
     }
   },
   onload: async function(frm) {

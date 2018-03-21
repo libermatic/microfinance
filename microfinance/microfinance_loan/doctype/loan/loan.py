@@ -488,3 +488,35 @@ def get_customer_address(customer=None):
             address.get('county'),
             state,
         ]))
+
+
+@frappe.whitelist()
+def convert_all_interests_till(loan, posting_date=today()):
+    from frappe.utils import get_first_day, get_last_day, add_months
+    from frappe.permissions import get_roles
+
+    if 'Loan Manager' not in get_roles(frappe.session.user):
+        frappe.throw('Insufficient permission')
+
+    loan = frappe.get_doc('Loan', loan)
+
+    def get_dates(start_date, end_date):
+        from_date = getdate(start_date)
+        to_date = getdate(end_date)
+        while from_date <= to_date:
+            yield from_date
+            from_date = add_months(from_date, 1)
+
+    effective_date = getdate('2017-08-01')
+    start_date = get_first_day(
+        add_months(
+            loan.posting_date \
+                if loan.posting_date > effective_date else effective_date,
+            1
+        )
+    )
+
+    return map(
+        loan.convert_interest_to_principal,
+        get_dates(start_date, posting_date)
+    )
