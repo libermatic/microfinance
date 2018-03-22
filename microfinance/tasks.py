@@ -17,5 +17,5 @@ def generate_interest_receivable(posting_date):
                 getdate(posting_date).day:
             loan = frappe.get_doc('Loan', loan_dict.get('name'))
             loan.convert_interest_to_principal(posting_date)
-            # disable creating interest as receivable
-            # loan.make_interest(posting_date, interest)
+            # to disable creating interest as receivable comment next line
+            loan.make_interest(posting_date, interest)
