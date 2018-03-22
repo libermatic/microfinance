@@ -96,7 +96,7 @@ def execute(filters=None):
             FROM `tabGL Entry`
             WHERE {conds}
             AND posting_date BETWEEN '{from_date}' AND '{to_date}'
-            GROUP BY voucher_type, voucher_no, account, remarks
+            GROUP BY posting_date, account, period, remarks
             ORDER BY posting_date
         """.format(
                 conds=" AND ".join(conds),
