@@ -74,7 +74,10 @@ class Recovery(AccountsController):
                 'against_voucher': self.loan
             })
         gl_dict.update(args)
-        return super(Recovery, self).get_gl_dict(gl_dict)
+        gle = super(Recovery, self).get_gl_dict(gl_dict)
+        if args.get('posting_date'):
+            gle.update({ 'posting_date': args.get('posting_date') })
+        return gle
 
     def get_unbilled(self):
         start_date, end_date = self.billing_period.split(' - ')
@@ -92,8 +95,10 @@ class Recovery(AccountsController):
         return unbilled
 
     def add_billing_gl_entries(self, gl_entries, unbilled):
+        posting_date = add_days(self.billing_period.split(' - ')[1], 1)
         gl_entries.append(
                 self.get_gl_dict({
+                        'posting_date':posting_date,
                         'account': self.interest_income_account,
                         'credit': unbilled,
                         'cost_center': frappe.db.get_value(
@@ -109,6 +114,7 @@ class Recovery(AccountsController):
             )
         gl_entries.append(
                 self.get_gl_dict({
+                        'posting_date':posting_date,
                         'account': self.interest_receivable_account,
                         'debit': unbilled,
                         'party_type': 'Customer',
