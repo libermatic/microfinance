@@ -8,7 +8,7 @@
     flex-flow: row wrap;
   }
   .print-format dl > div {
-    width: 50%;
+    width: 33%;
     margin-bottom: 1em;
   }
 </style>
@@ -31,6 +31,10 @@
   <div>
     <dt>Loan Account No</dt>
     <dd>{{ filters.loan }}</dd>
+  </div>
+  <div>
+    <dt>Loan Start Date</dt>
+    <dd>{{ frappe.format_date(frappe.db.get_value('Loan', filters.loan, "posting_date")) }}</dd>
   </div>
 </dl>
 
