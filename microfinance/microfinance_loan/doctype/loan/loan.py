@@ -157,7 +157,7 @@ class Loan(AccountsController):
             gl_entries = [
                 self.get_gl_dict({
                         'account': self.interest_receivable_account,
-                        'debit': amount,
+                        'debit': amount - owed_amount,
                         'party_type': 'Customer',
                         'party': self.customer,
                         'against': self.interest_income_account,
@@ -165,7 +165,7 @@ class Loan(AccountsController):
                     }),
                 self.get_gl_dict({
                         'account': self.interest_income_account,
-                        'credit': amount,
+                        'credit': amount - owed_amount,
                         'against': self.customer,
                         'cost_center': frappe.db.get_value(
                             'Loan Settings',
