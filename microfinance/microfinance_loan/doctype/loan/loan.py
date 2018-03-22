@@ -491,7 +491,7 @@ def get_customer_address(customer=None):
 
 
 @frappe.whitelist()
-def convert_all_interests_till(loan, posting_date=today()):
+def convert_all_interests_till(loan, posting_date=today(), disable_make_interest=False):
     from frappe.utils import get_first_day, get_last_day, add_months
     from frappe.permissions import get_roles
 
@@ -516,7 +516,9 @@ def convert_all_interests_till(loan, posting_date=today()):
         )
     )
 
-    return map(
-        loan.convert_interest_to_principal,
-        get_dates(start_date, posting_date)
-    )
+    def generate(d):
+        amount = loan.convert_interest_to_principal(d)
+        loan.make_interest(d, amount)
+        return d
+    
+    return map(generate, get_dates(start_date, posting_date))
