@@ -34,7 +34,7 @@
   </div>
   <div>
     <dt>Loan Start Date</dt>
-    <dd>{{ dateutil.str_to_user(frappe.db.get_value('Loan', filters.loan, "posting_date")) }}</dd>
+    <dd>{{ dateutil.str_to_user(filters.loan_start_date) }}</dd>
   </div>
 </dl>
 
