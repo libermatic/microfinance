@@ -102,13 +102,19 @@ frappe.ui.form.on('Loan', {
               default: frappe.datetime.nowdate(),
               reqd: 1,
             },
+            {
+              fieldname: 'cancel',
+              fieldtype: 'Check',
+              label: 'Cancel all conversions',
+            },
           ],
-          async function({ till_date }) {
+          async function({ till_date, cancel }) {
             await frappe.call({
               method:
                 'microfinance.microfinance_loan.doctype.loan.loan.convert_all_interests_till',
-              args: { loan: frm.doc['name'], posting_date: till_date },
+              args: { loan: frm.doc['name'], posting_date: till_date, cancel },
             });
+            frm.reload_doc();
             frappe.msgprint(
               'All pending interests processed. Please check account statement'
             );

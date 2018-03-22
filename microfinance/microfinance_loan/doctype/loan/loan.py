@@ -491,12 +491,18 @@ def get_customer_address(customer=None):
 
 
 @frappe.whitelist()
-def convert_all_interests_till(loan, posting_date=today(), disable_make_interest=False):
-    from frappe.utils import get_first_day, get_last_day, add_months
+def convert_all_interests_till(loan, posting_date=today(), disable_make_interest=False, cancel=0, recalculate=0):
+    from frappe.utils import cint, get_first_day, get_last_day, add_months
     from frappe.permissions import get_roles
 
     if 'Loan Manager' not in get_roles(frappe.session.user):
         frappe.throw('Insufficient permission')
+
+    if cint(cancel):
+        return delete_gl_entries(voucher_type='Loan', voucher_no=loan)
+
+    if cint(recalculate):
+        delete_gl_entries(voucher_type='Loan', voucher_no=loan)
 
     loan = frappe.get_doc('Loan', loan)
 
@@ -520,5 +526,5 @@ def convert_all_interests_till(loan, posting_date=today(), disable_make_interest
         amount = loan.convert_interest_to_principal(d)
         loan.make_interest(d, amount)
         return d
-    
+
     return map(generate, get_dates(start_date, posting_date))
