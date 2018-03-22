@@ -33,3 +33,8 @@ def interest(amount, rate=0.0, slab=0.0):
     if slab:
         return (math.ceil(flt(amount) / slab) * slab) * rate / 100.0
     return amount * flt(rate) / 100.0
+
+def humanify_period(period):
+    '''Return a humanized version of a billing period'''
+    day = period.split(' - ')[0]
+    return getdate(day).strftime('%b, %Y')

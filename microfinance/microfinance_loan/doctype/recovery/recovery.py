@@ -12,9 +12,9 @@ from frappe.utils.data import fmt_money
 
 from microfinance.microfinance_loan.doctype.loan.loan \
     import get_outstanding_principal, get_interest
-
 from microfinance.microfinance_loan.doctype.loan.loan_utils \
     import billed_interest, converted_interest
+from microfinance.microfinance_loan.utils import humanify_period
 
 
 class Recovery(AccountsController):
@@ -32,7 +32,7 @@ class Recovery(AccountsController):
             if converted > 0:
                 frappe.throw(_(
                     "Interest for period {} has already been converted to \
-                        principal".format(self.billing_period)
+                        principal".format(humanify_period(self.billing_period))
                 ))
 
     def before_save(self):
@@ -108,7 +108,7 @@ class Recovery(AccountsController):
                         ),
                         'against': self.customer,
                         'remarks': 'Interest for period: {}'.format(
-                            self.billing_period
+                            humanify_period(self.billing_period)
                         )
                     })
             )

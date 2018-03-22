@@ -19,6 +19,7 @@ from microfinance.microfinance_loan.doctype.loan.loan_utils \
 
 from microfinance.microfinance_loan.api.calculate_principal_and_duration \
     import execute as calculate_principal_and_duration
+from microfinance.microfinance_loan.utils import humanify_period
 
 
 class Loan(AccountsController):
@@ -173,7 +174,7 @@ class Loan(AccountsController):
                             'cost_center'
                         ),
                         'remarks': 'Interest for period: {}'.format(
-                            billing_period
+                            humanify_period(billing_period)
                         ),
                     })
             ]
@@ -210,6 +211,7 @@ class Loan(AccountsController):
             # check whether entries to recvble are already present
             owed_amount = self.get_owed(billing_period)
             gl_entries = []
+            period_text = humanify_period(billing_period)
             if amount - owed_amount > 0:
                 gl_entries.append(
                         self.get_gl_dict({
@@ -232,7 +234,7 @@ class Loan(AccountsController):
                                 'cost_center'
                             ),
                             'remarks': 'Interest for period: {}'.format(
-                                billing_period
+                                period_text
                             ),
                         })
                     )
@@ -253,7 +255,7 @@ class Loan(AccountsController):
                             'debit': amount,
                             'against': self.interest_receivable_account,
                             'remarks': 'Converted to principal for: {}'.format(
-                                billing_period
+                                period_text
                             ),
                         })
                 )
@@ -271,7 +273,7 @@ class Loan(AccountsController):
                                 'cost_center'
                             ),
                             'remarks': 'Late charges for period: {}'.format(
-                                billing_period
+                                period_text
                             ),
                         })
                     )
@@ -281,7 +283,7 @@ class Loan(AccountsController):
                             'debit': late_amount,
                             'against': self.interest_receivable_account,
                             'remarks': 'Converted to principal for: {}'.format(
-                                billing_period
+                                period_text
                             ),
                         })
                     )
