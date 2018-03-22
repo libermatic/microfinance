@@ -147,6 +147,9 @@ class Loan(AccountsController):
         return gle
 
     def make_interest(self, posting_date, amount, cancel=0, adv_adj=0):
+        # does nothin reqd for FiscalYearError
+        self.posting_date = posting_date
+
         periods = get_billing_periods(self.name, posting_date, 1)
         if len(periods) != 1:
             return None
@@ -202,6 +205,9 @@ class Loan(AccountsController):
         return owed_amount
 
     def convert_interest_to_principal(self, posting_date, cancel=0, adv_adj=0):
+        # does nothin reqd for FiscalYearError
+        self.posting_date = posting_date
+
         converted_posting_date = add_days(posting_date, -1)
         periods = get_billing_periods(self.name, converted_posting_date, 1)
         if len(periods) != 1:
