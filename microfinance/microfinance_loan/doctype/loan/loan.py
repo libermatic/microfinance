@@ -141,7 +141,10 @@ class Loan(AccountsController):
                 'against_voucher': self.name
             })
         gl_dict.update(args)
-        return super(Loan, self).get_gl_dict(gl_dict)
+        gle = super(Loan, self).get_gl_dict(gl_dict)
+        if args.get('posting_date'):
+            gle.update({ 'posting_date': args.get('posting_date') })
+        return gle
 
     def make_interest(self, posting_date, amount, cancel=0, adv_adj=0):
         periods = get_billing_periods(self.name, posting_date, 1)
@@ -149,7 +152,6 @@ class Loan(AccountsController):
             return None
         if amount:
             billing_period = periods[0].get('as_text')
-            self.posting_date = posting_date
 
             # check whether entries to recvble are already present
             owed_amount = self.get_owed(billing_period)
@@ -157,26 +159,28 @@ class Loan(AccountsController):
                 return None
             gl_entries = [
                 self.get_gl_dict({
-                        'account': self.interest_receivable_account,
-                        'debit': amount - owed_amount,
-                        'party_type': 'Customer',
-                        'party': self.customer,
-                        'against': self.interest_income_account,
-                        'period': billing_period,
-                    }),
+                    'posting_date': posting_date,
+                    'account': self.interest_receivable_account,
+                    'debit': amount - owed_amount,
+                    'party_type': 'Customer',
+                    'party': self.customer,
+                    'against': self.interest_income_account,
+                    'period': billing_period,
+                }),
                 self.get_gl_dict({
-                        'account': self.interest_income_account,
-                        'credit': amount - owed_amount,
-                        'against': self.customer,
-                        'cost_center': frappe.db.get_value(
-                            'Loan Settings',
-                            None,
-                            'cost_center'
-                        ),
-                        'remarks': 'Interest for period: {}'.format(
-                            humanify_period(billing_period)
-                        ),
-                    })
+                    'posting_date': posting_date,
+                    'account': self.interest_income_account,
+                    'credit': amount - owed_amount,
+                    'against': self.customer,
+                    'cost_center': frappe.db.get_value(
+                        'Loan Settings',
+                        None,
+                        'cost_center'
+                    ),
+                    'remarks': 'Interest for period: {}'.format(
+                        humanify_period(billing_period)
+                    ),
+                })
             ]
             make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 
@@ -206,87 +210,95 @@ class Loan(AccountsController):
         late_amount = amount * self.rate_of_late_charges / 100
         if amount:
             billing_period = periods[0].get('as_text')
-            self.posting_date = converted_posting_date
 
             # check whether entries to recvble are already present
             owed_amount = self.get_owed(billing_period)
             gl_entries = []
             period_text = humanify_period(billing_period)
             if amount - owed_amount > 0:
-                gl_entries.append(
-                        self.get_gl_dict({
-                                'account': self.interest_receivable_account,
-                                'debit': amount - owed_amount,
-                                'party_type': 'Customer',
-                                'party': self.customer,
-                                'against': self.interest_income_account,
-                                'period': billing_period,
-                            })
-                    )
+                receivable_posting_date = add_days(
+                    billing_period.split(' - ')[1], 1
+                )
                 gl_entries.append(
                     self.get_gl_dict({
-                            'account': self.interest_income_account,
-                            'credit': amount - owed_amount,
-                            'against': self.customer,
-                            'cost_center': frappe.db.get_value(
-                                'Loan Settings',
-                                None,
-                                'cost_center'
-                            ),
-                            'remarks': 'Interest for period: {}'.format(
-                                period_text
-                            ),
-                        })
-                    )
+                        'posting_date': receivable_posting_date,
+                        'account': self.interest_receivable_account,
+                        'debit': amount - owed_amount,
+                        'party_type': 'Customer',
+                        'party': self.customer,
+                        'against': self.interest_income_account,
+                        'period': billing_period,
+                    })
+                )
+                gl_entries.append(
+                    self.get_gl_dict({
+                        'posting_date': receivable_posting_date,
+                        'account': self.interest_income_account,
+                        'credit': amount - owed_amount,
+                        'against': self.customer,
+                        'cost_center': frappe.db.get_value(
+                            'Loan Settings',
+                            None,
+                            'cost_center'
+                        ),
+                        'remarks': 'Interest for period: {}'.format(
+                            period_text
+                        ),
+                    })
+                )
 
             gl_entries.append(
-                    self.get_gl_dict({
-                            'account': self.interest_receivable_account,
-                            'credit': amount,
-                            'party_type': 'Customer',
-                            'party': self.customer,
-                            'against': self.loan_account,
-                            'period': billing_period,
-                        })
-                )
+                self.get_gl_dict({
+                    'posting_date': converted_posting_date,
+                    'account': self.interest_receivable_account,
+                    'credit': amount,
+                    'party_type': 'Customer',
+                    'party': self.customer,
+                    'against': self.loan_account,
+                    'period': billing_period,
+                })
+            )
             gl_entries.append(
-                    self.get_gl_dict({
-                            'account': self.loan_account,
-                            'debit': amount,
-                            'against': self.interest_receivable_account,
-                            'remarks': 'Converted to principal for: {}'.format(
-                                period_text
-                            ),
-                        })
-                )
+                self.get_gl_dict({
+                    'posting_date': converted_posting_date,
+                    'account': self.loan_account,
+                    'debit': amount,
+                    'against': self.interest_receivable_account,
+                    'remarks': 'Converted to principal for: {}'.format(
+                        period_text
+                    ),
+                })
+            )
 
             if self.rate_of_late_charges:
                 late_amount = amount * self.rate_of_late_charges / 100
                 gl_entries.append(
                     self.get_gl_dict({
-                            'account': self.interest_income_account,
-                            'credit': late_amount,
-                            'against': self.customer,
-                            'cost_center': frappe.db.get_value(
-                                'Loan Settings',
-                                None,
-                                'cost_center'
-                            ),
-                            'remarks': 'Late charges for period: {}'.format(
-                                period_text
-                            ),
-                        })
-                    )
+                        'posting_date': converted_posting_date,
+                        'account': self.interest_income_account,
+                        'credit': late_amount,
+                        'against': self.customer,
+                        'cost_center': frappe.db.get_value(
+                            'Loan Settings',
+                            None,
+                            'cost_center'
+                        ),
+                        'remarks': 'Late charges for period: {}'.format(
+                            period_text
+                        ),
+                    })
+                )
                 gl_entries.append(
                     self.get_gl_dict({
-                            'account': self.loan_account,
-                            'debit': late_amount,
-                            'against': self.interest_receivable_account,
-                            'remarks': 'Converted to principal for: {}'.format(
-                                period_text
-                            ),
-                        })
-                    )
+                        'posting_date': converted_posting_date,
+                        'account': self.loan_account,
+                        'debit': late_amount,
+                        'against': self.interest_receivable_account,
+                        'remarks': 'Converted to principal for: {}'.format(
+                            period_text
+                        ),
+                    })
+                )
             make_gl_entries(
                 gl_entries,
                 cancel=cancel,
