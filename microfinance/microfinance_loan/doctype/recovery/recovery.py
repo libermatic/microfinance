@@ -41,11 +41,11 @@ class Recovery(AccountsController):
 
     def on_submit(self):
         self.make_gl_entries()
-        update_loan_status(self.loan)
+        update_loan_status(self.loan, posting_date=self.posting_date)
 
     def on_cancel(self):
         self.make_gl_entries(cancel=True)
-        update_loan_status(self.loan)
+        update_loan_status(self.loan, posting_date=self.posting_date)
 
     def make_gl_entries(self, cancel=0, adv_adj=0):
         gl_entries = []
