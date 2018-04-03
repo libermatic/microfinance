@@ -7,7 +7,7 @@ import type { Element } from 'React';
 import Field from './Field';
 import type { FieldType } from './Field';
 
-type FieldGroupChildren = Array<Element<typeof Field>>;
+type FieldGroupChildren = Element<typeof Field> | Array<Element<typeof Field>>;
 
 type Props = {
   children: FieldGroupChildren,
@@ -19,9 +19,11 @@ class FieldGroup extends Component<Props, {}> {
   fieldGroup: frappe.ui.FieldGroup;
 
   componentDidMount() {
-    const fields = this.props.children.map(child =>
-      this.makeField(child.props)
-    );
+    const { children } = this.props;
+    const fields =
+      this.props.children instanceof Array
+        ? this.props.children.map(child => this.makeField(child.props))
+        : [this.makeField(this.props.children.props)];
     this.fieldGroup = new frappe.ui.FieldGroup({
       fields,
       parent: this.form,
@@ -33,7 +35,7 @@ class FieldGroup extends Component<Props, {}> {
       });
     });
     fields.forEach(({ fieldname, value }) => {
-      if (value) {
+      if (fieldname && value) {
         this.fieldGroup.set_value(fieldname, value);
       }
     });
@@ -55,11 +57,13 @@ class FieldGroup extends Component<Props, {}> {
   };
   getFieldValues = (
     children: FieldGroupChildren
-  ): Array<{ fieldname: ?string, value: ?mixed }> =>
-    children.map(({ props }) => {
+  ): Array<{ fieldname: ?string, value: ?mixed }> => {
+    const fields = children instanceof Array ? children : [children];
+    return fields.map(({ props }) => {
       const { fieldname, value } = this.makeField(props);
       return { fieldname, value };
     });
+  };
 
   render() {
     return <form ref={form => (this.form = form)} />;
