@@ -47,14 +47,15 @@ class Loan(AccountsController):
                 {'customer': self.customer},
                 ['date_of_retirement', 'net_salary_amount']
             )
-        income_multiple, max_duration = frappe.get_value(
+        force_duration, income_multiple, max_duration = frappe.get_value(
                 'Loan Plan',
                 self.loan_plan,
-                ['income_multiple', 'max_duration']
+                ['force_duration', 'income_multiple', 'max_duration']
             )
         check = calculate_principal_and_duration(
                 income=net_salary_amount,
                 loan_plan={
+                        'force_duration': force_duration,
                         'income_multiple': income_multiple,
                         'max_duration': max_duration,
                         'billing_day': getdate(self.billing_date).day,
