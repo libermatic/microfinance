@@ -1,0 +1,23 @@
+{
+ "content": null, 
+ "creation": "2018-03-21 17:22:06.793518", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "idx": 0, 
+ "modified": "2018-04-07 00:34:44.775117", 
+ "modified_by": "Administrator", 
+ "module": "Microfinance Loan", 
+ "name": "late_charges_tool", 
+ "owner": "Administrator", 
+ "page_name": "late_charges_tool", 
+ "roles": [
+  {
+   "role": "Loan Manager"
+  }
+ ], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "system_page": 1, 
+ "title": "Interests and Charges Tool"
+}

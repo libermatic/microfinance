@@ -97,6 +97,11 @@ def get_data():
                     "type": "page",
                     "name": "calculate_principal",
                     "label": _("Calculate Loan Principal")
+                },
+                {
+                    "type": "page",
+                    "name": "late_charges_tool",
+                    "label": _("Interests and Charges Tool")
                 }
             ]
         },
